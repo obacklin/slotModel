@@ -1,37 +1,17 @@
 from __future__ import annotations
 
 import random
+import argparse
+from pathlib import Path
+
+from config_loader import ConfigError, load_game
+
 import tkinter as tk
 from tkinter import messagebox, ttk
 
 from game_config import GameConfig, Payline
+from config_loader import UiConfig, PaylineStyle
 from screen_generator import Screen, build_screen, spin
-
-
-EXAMPLE_CONFIG = GameConfig(
-    name="Analytics Playground",
-    reels=(
-        ("A", "K", "Q", "J", "10", "A", "Q", "K"),
-        ("K", "Q", "J", "10", "A", "K", "J", "Q"),
-        ("Q", "J", "10", "A", "K", "Q", "10", "J"),
-        ("J", "10", "A", "K", "Q", "J", "A", "10"),
-        ("10", "A", "K", "Q", "J", "10", "K", "A"),
-    ),
-    visible_rows=3,
-    paylines=(
-        Payline("Top", (0, 0, 0, 0, 0)),
-        Payline("Middle", (1, 1, 1, 1, 1)),
-        Payline("Bottom", (2, 2, 2, 2, 2)),
-        Payline("V", (0, 1, 2, 1, 0)),
-        Payline("Inverted V", (2, 1, 0, 1, 2)),
-        Payline("Top W", (0, 1, 0, 1, 0)),
-        Payline("Top Inverted W", (1, 0, 1, 0, 1)),
-        Payline("Lower W", (2, 1, 2, 1, 2)),
-        Payline("Lower Inverted W", (1, 2, 1, 2, 1)),
-        Payline("Upper Wave", (1, 1, 0, 1, 1)),
-        Payline("Lower Wave", (1, 1, 2, 1, 1)),
-    ),
-)
 
 
 class SlotScreenApp:
@@ -41,12 +21,14 @@ class SlotScreenApp:
         self,
         root: tk.Tk,
         config: GameConfig,
+        ui_config: UiConfig,
         *,
         seed: int | None = None,
     ) -> None:
         self.root = root
         self.config = config
         self.rng = random.Random(seed)
+        self.ui_config = ui_config
 
         self.stop_variables = [
             tk.StringVar(value="0")
@@ -66,21 +48,6 @@ class SlotScreenApp:
 
         self.current_screen: Screen | None = None
         self.current_stops: tuple[int, ...] | None = None
-
-        # One color per configured payline.
-        self.payline_colors = (
-            "#ff0000",  # Top
-            "#ff5300",  # Middle
-            "#ffa500",  # Bottom
-            "#ffd200",  # V
-            "#ffff00",  # Inverted V
-            "#80c000",  # Top W
-            "#008000",  # Top Inverted W
-            "#004080",  # Lower W
-            "#0000ff",  # Lower Inverted W
-            "#2600c1",  # Upper Wave
-            "#4b0082",  # Lower Wave
-        )
 
         self.cell_width = 100
         self.cell_height = 80
@@ -229,7 +196,7 @@ class SlotScreenApp:
                 pady=3,
             )
 
-            color = self._payline_color(payline_index)
+            style = self._payline_style(payline)
 
             color_marker = tk.Canvas(
                 item_frame,
@@ -249,8 +216,8 @@ class SlotScreenApp:
                 2,
                 14,
                 14,
-                fill=color,
-                outline=color,
+                fill=style.color,
+                outline=style.color,
             )
 
             ttk.Checkbutton(
@@ -360,16 +327,6 @@ class SlotScreenApp:
             column=0,
         )
 
-    def _payline_color(
-        self,
-        payline_index: int,
-    ) -> str:
-        """Return a configured color, cycling if necessary."""
-
-        return self.payline_colors[
-            payline_index % len(self.payline_colors)
-        ]
-
     def _read_stops(self) -> tuple[int, ...]:
         stops: list[int] = []
 
@@ -449,24 +406,17 @@ class SlotScreenApp:
     def _draw_paylines(self) -> None:
         self.screen_canvas.delete("payline")
 
-        for payline_index, (
-            payline,
-            variable,
-        ) in enumerate(
-            zip(
-                self.config.paylines,
-                self.payline_variables,
-            )
+        for payline, variable in zip(
+            self.config.paylines,
+            self.payline_variables,
         ):
             if not variable.get():
                 continue
 
-            color = self._payline_color(payline_index)
+            style = self._payline_style(payline)
             points: list[float] = []
 
-            for reel_index, row_index in enumerate(
-                payline.rows
-            ):
+            for reel_index, row_index in enumerate(payline.rows):
                 x, y = self._cell_center(
                     reel_index,
                     row_index,
@@ -475,8 +425,8 @@ class SlotScreenApp:
 
             self.screen_canvas.create_line(
                 *points,
-                fill=color,
-                width=4,
+                fill=style.color,
+                width=style.width,
                 capstyle=tk.ROUND,
                 joinstyle=tk.ROUND,
                 tags=("payline",),
@@ -484,9 +434,7 @@ class SlotScreenApp:
 
             marker_radius = 6
 
-            for reel_index, row_index in enumerate(
-                payline.rows
-            ):
+            for reel_index, row_index in enumerate(payline.rows):
                 x, y = self._cell_center(
                     reel_index,
                     row_index,
@@ -497,13 +445,12 @@ class SlotScreenApp:
                     y - marker_radius,
                     x + marker_radius,
                     y + marker_radius,
-                    fill=color,
+                    fill=style.color,
                     outline="#ffffff",
                     width=1,
                     tags=("payline",),
                 )
 
-        # Keep symbol text readable above the payline graphics.
         self.screen_canvas.tag_raise("symbol")
 
     def _render_screen(
@@ -530,6 +477,15 @@ class SlotScreenApp:
             f"Stops: {self.current_stops}    "
             f"Active paylines: "
             f"{active_count}/{len(self.config.paylines)}"
+        )
+
+    def _payline_style(
+            self,
+            payline: Payline,
+    ) -> PaylineStyle:
+        return self.ui_config.payline_styles.get(
+            payline.id,
+            PaylineStyle(),
         )
 
     def _on_payline_toggle(self) -> None:
@@ -673,13 +629,48 @@ class SlotScreenApp:
             stops,
         )
 
+def parse_arguments() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Inspect a configured slot reel screen."
+    )
+
+    parser.add_argument(
+        "config",
+        nargs="?",
+        type=Path,
+        default=Path(
+            "configs/analytics_playground.json"
+        ),
+        help="Path to the game configuration JSON file.",
+    )
+
+    return parser.parse_args()
+
 
 def main() -> None:
+    arguments = parse_arguments()
+
+    try:
+        loaded = load_game(arguments.config)
+    except ConfigError as error:
+        root = tk.Tk()
+        root.withdraw()
+
+        messagebox.showerror(
+            title="Configuration error",
+            message=str(error),
+            parent=root,
+        )
+
+        root.destroy()
+        return
+
     root = tk.Tk()
 
     SlotScreenApp(
         root,
-        EXAMPLE_CONFIG,
+        loaded.game,
+        ui_config=loaded.ui,
         seed=12345,
     )
 

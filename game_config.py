@@ -9,12 +9,16 @@ ReelStrip: TypeAlias = tuple[Symbol, ...]
 
 @dataclass(frozen=True, slots=True)
 class Payline:
+    id: str
     name: str
     rows: tuple[int, ...]
 
     def __post_init__(self) -> None:
+        if not self.id.strip():
+            raise ValueError("Payline ID cannot be empty.")
+
         if not self.name.strip():
-            raise ValueError("Payline name can not be empty.")
+            raise ValueError("Payline name cannot be empty.")
 
         if not self.rows:
             raise ValueError("Payline must contain row(s).")
@@ -28,11 +32,25 @@ class GameConfig:
     """
 
     reels: tuple[ReelStrip, ...]
-    paylines: tuple[Payline, ...]
+    paylines: tuple[Payline, ...] = ()
     visible_rows: int = 3
+    window_offsets: tuple[int, ...] = ()
     name: str = "Example Slot"
 
     def __post_init__(self) -> None:
+        if not self.window_offsets:
+            object.__setattr__(
+                self,
+                "window_offsets",
+                tuple(range(self.visible_rows))
+            )
+
+        if len(self.window_offsets) != self.visible_rows:
+            raise ValueError(
+                "window_offsets must contain excatly "
+                f"{self.visible_rows} values"
+            )
+
         if not isinstance(self.visible_rows, int):
             raise TypeError("visible_rows must be an integer")
 

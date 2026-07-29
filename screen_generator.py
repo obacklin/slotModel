@@ -55,22 +55,17 @@ def build_screen(
     config: GameConfig,
     stops: Sequence[int],
 ) -> Screen:
-    """Build a row-major visible screen from explicit reel stops.
-
-    Convention:
-        A stop identifies the top visible symbol on its reel.
-
-    Formula:
-        screen[row][reel]
-            = reels[reel][(stop[reel] + row) % reel_length]
-    """
+    """Build a row-major visible screen from explicit reel stops."""
 
     valid_stops = validate_stops(config, stops)
 
     return tuple(
         tuple(
             config.reels[reel_index][
-                (valid_stops[reel_index] + row_index)
+                (
+                    valid_stops[reel_index]
+                    + config.window_offsets[row_index]
+                )
                 % config.reel_lengths[reel_index]
             ]
             for reel_index in range(config.n_reels)
