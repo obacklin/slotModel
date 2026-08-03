@@ -22,7 +22,7 @@ from slotmodel.sim.screens import ScreenBatchArray
 CompiledPaylines: TypeAlias = NDArray[np.int8]
 WinningSymbolBatch: TypeAlias = NDArray[np.int16]
 MatchCountBatch: TypeAlias = NDArray[np.int16]
-PayoutMultiplierBatch: TypeAlias = NDArray[np.int32]
+PayoutMultiplierBatch: TypeAlias = NDArray[np.float64]
 
 
 @dataclass(frozen=True, slots=True)
@@ -58,7 +58,7 @@ class PaylineEvaluation:
         return np.sum(
             self.payout_multipliers,
             axis=1,
-            dtype=np.int32,
+            dtype=np.float64,
         )
 
 
@@ -239,19 +239,34 @@ class PaylineEvaluator:
             dtype=np.int16,
         )
 
-        payout_multipliers = self.payout_matrix[
+        base_payout_multipliers = self.payout_matrix[
             target_symbols,
             match_counts,
         ]
 
         qualifies = match_counts >= self.minimum_match_count
-        payout_multipliers = np.where(
-            qualifies,
-            payout_multipliers,
-            0,
-        ).astype(np.int32, copy=False)
 
-        win_mask = payout_multipliers > 0
+        base_payout_multipliers = np.where(
+            qualifies,
+            base_payout_multipliers,
+            0,
+        ).astype(np.float64, copy=False)
+
+        wild_counts = np.sum(
+            is_wild & connected_prefix,
+            axis=2,
+            dtype=np.int16
+        )
+        wild_multipliers = np.left_shift(
+            np.int64(1),
+            wild_counts,
+        )
+
+        payout_multipliers = (
+            base_payout_multipliers * wild_multipliers
+        ).astype(np.float64, copy=False)
+
+        win_mask = payout_multipliers > 0.0
 
         winning_symbols = np.where(
             win_mask,

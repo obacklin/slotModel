@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from numbers import Integral
+from numbers import Real
 from typing import TypeAlias
 
 import numpy as np
@@ -10,8 +10,8 @@ from numpy.typing import NDArray
 from slotmodel.sim.reels import Symbol
 
 
-PayoutMultipliers: TypeAlias = tuple[int, ...]
-PaytableMatrix: TypeAlias = NDArray[np.int32]
+PayoutMultipliers: TypeAlias = tuple[float, ...]
+PaytableMatrix: TypeAlias = NDArray[np.float64]
 
 
 @dataclass(frozen=True, slots=True)
@@ -39,21 +39,21 @@ class PaytableEntry:
 
         for multiplier in self.multipliers:
             if (
-                not isinstance(multiplier, Integral)
+                not isinstance(multiplier, Real)
                 or isinstance(multiplier, bool)
             ):
                 raise TypeError(
-                    "Paytable multipliers must be integers."
+                    "Paytable multipliers must be real numbers."
                 )
 
-            if multiplier <= 0:
+            if multiplier <= 0.0:
                 raise ValueError(
                     "Paytable multipliers must be positive."
                 )
 
-            if multiplier > np.iinfo(np.int32).max:
+            if not np.isfinite(multiplier):
                 raise ValueError(
-                    "Paytable multiplier exceeds the int32 range."
+                    "Paytable multiplier must be finite."
                 )
 
 
@@ -117,7 +117,7 @@ def compile_paytable(paytable: Paytable) -> PaytableMatrix:
     symbol_count = max(int(symbol) for symbol in Symbol) + 1
     matrix = np.zeros(
         (symbol_count, paytable.reel_count + 1),
-        dtype=np.int32,
+        dtype=np.float64,
     )
 
     first_count = paytable.minimum_match_count
