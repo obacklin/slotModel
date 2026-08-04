@@ -12,7 +12,7 @@ from slotmodel.sim.paytable import (
 
 
 class PayLineEvalTest(unittest.TestCase):
-    def SetUp(self)->None:
+    def setUp(self)->None:
         self.symbol_count = max(
             int(symbol) for symbol in Symbol
         ) + 1

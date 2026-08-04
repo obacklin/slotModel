@@ -1,3 +1,10 @@
+from slotmodel.sim.eval.bonus import (
+    BonusStepEvaluation,
+    LockMaskBatch,
+    evaluate_bonus_step,
+    overlay_locked_symbols,
+    winning_pos_mask,
+)
 from slotmodel.sim.eval.payline_eval import (
     CompiledPaylines,
     MatchCountBatch,
@@ -14,6 +21,8 @@ from slotmodel.sim.eval.scatter import (
 )
 
 __all__ = [
+    "BonusStepEvaluation",
+    "LockMaskBatch",
     "CompiledPaylines",
     "MatchCountBatch",
     "PaylineEvaluation",
@@ -23,5 +32,8 @@ __all__ = [
     "TriggerMask",
     "WinningSymbolBatch",
     "count_scatter_symbols",
+    "evaluate_bonus_step",
+    "overlay_locked_symbols",
     "scatter_bonus_trigger_mask",
+    "winning_pos_mask",
 ]

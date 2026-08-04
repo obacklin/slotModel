@@ -37,11 +37,11 @@ def count_scatter_symbols(
 
 def scatter_bonus_trigger_mask(
     screens: ScreenBatchArray,
-    minimum_scatter_count: int = 3,
+    min_scatter_count: int = 3,
 ) -> TriggerMask:
     """Return one boolean bonus-trigger result per screen."""
 
-    if minimum_scatter_count <= 0:
+    if min_scatter_count <= 0:
         raise ValueError("minimum_scatter_count must be positive.")
 
-    return count_scatter_symbols(screens) >= minimum_scatter_count
+    return count_scatter_symbols(screens) >= min_scatter_count
