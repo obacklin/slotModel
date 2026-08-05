@@ -154,6 +154,142 @@ QPushButton#primaryButton:disabled {
     border-color: #484d55;
 }
 
+/* ---------------------------------------------------------
+   Reel table
+   --------------------------------------------------------- */
+
+QTableWidget#reelsTable {
+    background-color: #24272c;
+    alternate-background-color: #292c31;
+    color: #e6e8eb;
+
+    border: 1px solid #383c43;
+    border-radius: 8px;
+
+    selection-background-color: #3b4266;
+    selection-color: #ffffff;
+}
+
+QTableWidget#reelsTable::item {
+    border: none;
+    border-bottom: 1px solid #30343a;
+    padding: 7px 10px;
+}
+
+QTableWidget#reelsTable::item:hover {
+    background-color: #31353b;
+}
+
+QTableWidget#reelsTable::item:selected {
+    background-color: #3b4266;
+    color: #ffffff;
+}
+
+QTableWidget#reelsTable QHeaderView::section {
+    background-color: #1f2226;
+    color: #aeb4bd;
+
+    border: none;
+    border-bottom: 1px solid #3b3f46;
+
+    padding: 10px 12px;
+    font-weight: 600;
+}
+
+/* ---------------------------------------------------------
+   Paytable
+   --------------------------------------------------------- */
+
+QTableWidget#paytableTable {
+    background-color: #24272c;
+    alternate-background-color: #292c31;
+    color: #e6e8eb;
+
+    border: 1px solid #383c43;
+    border-radius: 8px;
+
+    selection-background-color: #3b4266;
+    selection-color: #ffffff;
+}
+
+QTableWidget#paytableTable::item {
+    border: none;
+    border-bottom: 1px solid #30343a;
+    padding: 8px 12px;
+}
+
+QTableWidget#paytableTable::item:hover {
+    background-color: #31353b;
+}
+
+QTableWidget#paytableTable::item:selected {
+    background-color: #3b4266;
+    color: #ffffff;
+}
+
+QTableWidget#paytableTable QHeaderView::section {
+    background-color: #1f2226;
+    color: #aeb4bd;
+
+    border: none;
+    border-bottom: 1px solid #3b3f46;
+
+    padding: 10px 12px;
+    font-weight: 600;
+}
+
+/* ---------------------------------------------------------
+   Scrollbars
+   --------------------------------------------------------- */
+
+QScrollBar:vertical {
+    background-color: #202328;
+    width: 12px;
+    margin: 0;
+}
+
+QScrollBar::handle:vertical {
+    background-color: #4a4f58;
+    min-height: 30px;
+    margin: 2px;
+    border-radius: 5px;
+}
+
+QScrollBar::handle:vertical:hover {
+    background-color: #5a606a;
+}
+
+QScrollBar::add-line:vertical,
+QScrollBar::sub-line:vertical {
+    height: 0;
+    border: none;
+    background: none;
+}
+
+QScrollBar:horizontal {
+    background-color: #202328;
+    height: 12px;
+    margin: 0;
+}
+
+QScrollBar::handle:horizontal {
+    background-color: #4a4f58;
+    min-width: 30px;
+    margin: 2px;
+    border-radius: 5px;
+}
+
+QScrollBar::handle:horizontal:hover {
+    background-color: #5a606a;
+}
+
+QScrollBar::add-line:horizontal,
+QScrollBar::sub-line:horizontal {
+    width: 0;
+    border: none;
+    background: none;
+}
+
 
 /* ---------------------------------------------------------
    Status bar

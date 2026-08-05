@@ -3,6 +3,7 @@ from __future__ import annotations
 from PySide6.QtWidgets import (
     QFrame,
     QLabel,
+    QSizePolicy,
     QVBoxLayout,
     QWidget,
 )
@@ -15,6 +16,8 @@ class BasePage(QWidget):
         self,
         title: str,
         description: str,
+        *,
+        expand_body: bool = False,
         parent: QWidget | None = None,
     ) -> None:
         super().__init__(parent)
@@ -39,8 +42,14 @@ class BasePage(QWidget):
         self.body_layout = QVBoxLayout()
         self.body_layout.setSpacing(14)
 
-        self._layout.addLayout(self.body_layout)
-        self._layout.addStretch()
+        if expand_body:
+            self._layout.addLayout(
+                self.body_layout,
+                stretch=1
+            )
+        else:
+            self._layout.addLayout(self.body_layout)
+            self._layout.addStretch()
 
     def add_placeholder(
         self,
