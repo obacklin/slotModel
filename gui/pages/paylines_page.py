@@ -34,8 +34,6 @@ from slotmodel.sim.paylines.paylines import (
 from slotmodel.sim.reels import Symbol
 
 
-# A fixed row-major screen used only to make the payline geometry
-# visible. Reel stop positions are intentionally irrelevant here.
 VISUALIZATION_SCREEN = (
     (
         Symbol.WILD,
@@ -141,7 +139,7 @@ class PaylinesPage(BasePage):
         card_description = QLabel(
             "Select paylines on the left "
             "to draw them over the fixed "
-            "5 × 3 visualisation screen."
+            "5 x 3 visualisation screen."
         )
         card_description.setObjectName(
             "cardDescription"

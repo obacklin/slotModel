@@ -100,6 +100,24 @@ QFrame#contentCard {
     border-radius: 12px;
 }
 
+/* The Slot page uses a borderless workspace instead of contentCard. */
+QFrame#slotWorkspace {
+    background-color: transparent;
+    border: none;
+}
+
+/* The animation parent paints the single common 5 x 3 frame itself. */
+QWidget#animatedSlotScreen {
+    background-color: transparent;
+    border: none;
+}
+
+/* Reel children are transparent painters, not cards or symbol boxes. */
+QWidget#animatedReel {
+    background-color: transparent;
+    border: none;
+}
+
 QLabel#cardTitle {
     background-color: transparent;
     color: #f2f3f5;
