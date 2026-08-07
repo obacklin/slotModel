@@ -118,6 +118,11 @@ QWidget#animatedReel {
     border: none;
 }
 
+QGraphicsView#scalableSlotView {
+    background-color: transparent;
+    border: none;
+}
+
 QLabel#cardTitle {
     background-color: transparent;
     color: #f2f3f5;
@@ -136,6 +141,44 @@ QLabel#statusLabel {
     border: 1px solid #373b42;
     border-radius: 7px;
     padding: 10px 12px;
+}
+
+QLabel#payoutDisplay {
+    background-color: #22252a;
+    color: #f2c14e;
+    border: 1px solid #5f5331;
+    border-radius: 7px;
+    padding: 9px 12px;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+QWidget#slotGroup,
+QWidget#slotControlPanel,
+QWidget#winningPaylineOverlay {
+    background-color: transparent;
+    border: none;
+}
+
+QLabel#freeSpinsDisplay {
+    background-color: #22252a;
+    color: #e5c76b;
+    border: 1px solid #5f5331;
+    border-radius: 7px;
+    padding: 9px 12px;
+    font-weight: 700;
+}
+
+QCheckBox#autoSpinCheckbox {
+    background-color: transparent;
+    color: #c5cad1;
+    spacing: 8px;
+    min-height: 28px;
+    font-weight: 600;
+}
+
+QCheckBox#autoSpinCheckbox:disabled {
+    color: #777d86;
 }
 
 
@@ -167,6 +210,29 @@ QPushButton#primaryButton:pressed {
 }
 
 QPushButton#primaryButton:disabled {
+    background-color: #3d4148;
+    color: #777d86;
+    border-color: #484d55;
+}
+
+QPushButton#bonusButton {
+    background-color: #332f22;
+    color: #e5c76b;
+    border: 1px solid #8f7935;
+}
+
+QPushButton#bonusButton:hover {
+    background-color: #403a27;
+    color: #f0d77f;
+    border-color: #b49a45;
+}
+
+QPushButton#bonusButton:pressed {
+    background-color: #2b281d;
+    border-color: #806c2f;
+}
+
+QPushButton#bonusButton:disabled {
     background-color: #3d4148;
     color: #777d86;
     border-color: #484d55;

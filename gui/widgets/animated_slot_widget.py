@@ -26,6 +26,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from gui.widgets.winning_payline_overlay import WinningPaylineOverlay
 from slotmodel.paths import PROJECT_ROOT
 from slotmodel.sim.reels import ReelSet, Symbol
 
@@ -46,34 +47,42 @@ SCREEN_OUTLINE_WIDTH = 2
 SCREEN_CORNER_RADIUS = 0
 
 SCREEN_BACKGROUND = QColor("#22252a")
-SCREEN_OUTLINE = QColor("#4a4f58")
+BASE_SCREEN_OUTLINE = QColor("#4a4f58")
+BONUS_SCREEN_OUTLINE = QColor("#d4af37")
 
 
 class _SymbolPixmapStore:
-    """Load and cache base-symbol images by backend Symbol value."""
+    """Load and cache base/sticky images by backend Symbol value."""
 
     def __init__(
         self,
         symbol_directory: str | Path,
     ) -> None:
         self._symbol_directory = Path(symbol_directory)
-        self._asset_paths = self._index_base_assets()
-        self._pixmaps: dict[Symbol, QPixmap] = {}
+        self._asset_paths = self._index_assets()
+        self._pixmaps: dict[tuple[Symbol, bool], QPixmap] = {}
 
-    def pixmap(self, symbol: Symbol) -> QPixmap:
-        cached = self._pixmaps.get(symbol)
+    def pixmap(
+        self,
+        symbol: Symbol,
+        *,
+        sticky: bool = False,
+    ) -> QPixmap:
+        cache_key = (symbol, sticky)
+        cached = self._pixmaps.get(cache_key)
 
         if cached is not None:
             return cached
 
-        expected_filename = f"{symbol.name}_base.png"
+        suffix = "sticky" if sticky else "base"
+        expected_filename = f"{symbol.name}_{suffix}.png"
         asset_path = self._asset_paths.get(
             expected_filename.casefold()
         )
 
         if asset_path is None:
             raise FileNotFoundError(
-                "No base image was found for "
+                f"No {suffix} image was found for "
                 f"{symbol.name}. Expected "
                 f"'{expected_filename}' in "
                 f"{self._symbol_directory}."
@@ -87,10 +96,10 @@ class _SymbolPixmapStore:
                 f"{asset_path}"
             )
 
-        self._pixmaps[symbol] = pixmap
+        self._pixmaps[cache_key] = pixmap
         return pixmap
 
-    def _index_base_assets(self) -> dict[str, Path]:
+    def _index_assets(self) -> dict[str, Path]:
         if not self._symbol_directory.is_dir():
             raise FileNotFoundError(
                 "Symbol asset directory does not exist: "
@@ -103,11 +112,17 @@ class _SymbolPixmapStore:
             if (
                 path.is_file()
                 and path.suffix.casefold() == ".png"
-                and path.stem.casefold().endswith("_base")
+                and (
+                    path.stem.casefold().endswith("_base")
+                    or path.stem.casefold().endswith("_sticky")
+                )
             )
         }
 
-        if not asset_paths:
+        if not any(
+            name.removesuffix(".png").endswith("_base")
+            for name in asset_paths
+        ):
             raise FileNotFoundError(
                 "No base symbol PNG files were found in "
                 f"{self._symbol_directory}."
@@ -158,6 +173,9 @@ class AnimatedReelWidget(QWidget):
         self._symbol_size = int(symbol_size)
         self._scroll_position = 0.0
         self._target_stop = 0
+        self._sticky_symbols: tuple[Symbol | None, ...] = tuple(
+            None for _ in range(self._visible_rows)
+        )
 
         # Load all required assets while constructing the page, rather than
         # failing halfway through an animation.
@@ -268,13 +286,46 @@ class AnimatedReelWidget(QWidget):
         self._animation.setEndValue(float(end_position))
         self._animation.start()
 
+    def set_sticky_symbols(
+        self,
+        symbols: Sequence[Symbol | int | None],
+    ) -> None:
+        """Set fixed sticky symbols for the visible rows on this reel."""
+        if len(symbols) != self._visible_rows:
+            raise ValueError(
+                f"Expected {self._visible_rows} sticky row values, "
+                f"received {len(symbols)}."
+            )
+
+        normalized = tuple(
+            None if symbol is None else Symbol(int(symbol))
+            for symbol in symbols
+        )
+
+        for symbol in normalized:
+            if symbol is not None:
+                self._pixmaps.pixmap(symbol, sticky=True)
+
+        self._sticky_symbols = normalized
+        self.update()
+
+    def clear_sticky_symbols(self) -> None:
+        self._sticky_symbols = tuple(
+            None for _ in range(self._visible_rows)
+        )
+        self.update()
+
     def visible_symbols(self) -> tuple[Symbol, ...]:
         """Return the symbols currently aligned with the visible rows."""
         stop = self.current_stop
 
         return tuple(
-            self._strip[(stop + row_index) % self.reel_length]
-            for row_index in range(self._visible_rows)
+            sticky_symbol
+            if sticky_symbol is not None
+            else self._strip[(stop + row_index) % self.reel_length]
+            for row_index, sticky_symbol in enumerate(
+                self._sticky_symbols
+            )
         )
 
     def paintEvent(self, event) -> None:  # type: ignore[override]
@@ -316,6 +367,31 @@ class AnimatedReelWidget(QWidget):
                 QRectF(pixmap.rect()),
             )
 
+        # Sticky symbols are fixed in screen coordinates. Painting the screen
+        # background first masks the moving strip underneath, including through
+        # transparent areas in the sticky PNG.
+        for row_index, sticky_symbol in enumerate(self._sticky_symbols):
+            if sticky_symbol is None:
+                continue
+
+            target = QRectF(
+                0.0,
+                float(row_index * self._symbol_size),
+                float(self._symbol_size),
+                float(self._symbol_size),
+            )
+            painter.fillRect(target, SCREEN_BACKGROUND)
+
+            pixmap = self._pixmaps.pixmap(
+                sticky_symbol,
+                sticky=True,
+            )
+            painter.drawPixmap(
+                target,
+                pixmap,
+                QRectF(pixmap.rect()),
+            )
+
     @Slot()
     def _finish_animation(self) -> None:
         # Repeated downward spins produce large negative values. Normalize to
@@ -347,6 +423,7 @@ class AnimatedSlotWidget(QWidget):
         *,
         reels: ReelSet,
         visible_rows: int,
+        paylines: Sequence[Sequence[int]],
         symbol_directory: str | Path = SYMBOL_ASSET_DIRECTORY,
         symbol_size: int = SYMBOL_DISPLAY_SIZE,
         parent: QWidget | None = None,
@@ -366,6 +443,7 @@ class AnimatedSlotWidget(QWidget):
         self._symbol_size = int(symbol_size)
         self._remaining_reels = 0
         self._is_spinning = False
+        self._bonus_mode = False
 
         self.setObjectName("animatedSlotScreen")
         self.setSizePolicy(
@@ -412,6 +490,18 @@ class AnimatedSlotWidget(QWidget):
         )
         self.setFixedSize(screen_width, screen_height)
 
+        self._winning_overlay = WinningPaylineOverlay(
+            paylines=paylines,
+            reel_count=len(self._reels),
+            row_count=self._visible_rows,
+            symbol_size=self._symbol_size,
+            frame_inset=SCREEN_FRAME_INSET,
+            column_spacing=COLUMN_SPACING,
+            parent=self,
+        )
+        self._winning_overlay.setGeometry(self.rect())
+        self._winning_overlay.raise_()
+
     @property
     def is_spinning(self) -> bool:
         return self._is_spinning
@@ -419,6 +509,25 @@ class AnimatedSlotWidget(QWidget):
     @property
     def reel_count(self) -> int:
         return len(self._reels)
+
+    @property
+    def bonus_mode(self) -> bool:
+        """Return whether the slot screen is in bonus presentation mode."""
+        return self._bonus_mode
+
+    def set_bonus_mode(self, enabled: bool) -> None:
+        """Switch the common screen outline between base and bonus styling."""
+        enabled = bool(enabled)
+
+        if self._bonus_mode == enabled:
+            return
+
+        self._bonus_mode = enabled
+        self.update()
+
+    @property
+    def winning_payline_indices(self) -> frozenset[int]:
+        return self._winning_overlay.winning_indices
 
     def sizeHint(self) -> QSize:
         return self.size()
@@ -437,10 +546,14 @@ class AnimatedSlotWidget(QWidget):
             -half_pen,
         )
 
-        painter.setBrush(SCREEN_BACKGROUND)
-        painter.setPen(
-            QPen(SCREEN_OUTLINE, SCREEN_OUTLINE_WIDTH)
+        outline = (
+            BONUS_SCREEN_OUTLINE
+            if self._bonus_mode
+            else BASE_SCREEN_OUTLINE
         )
+
+        painter.setBrush(SCREEN_BACKGROUND)
+        painter.setPen(QPen(outline, SCREEN_OUTLINE_WIDTH))
 
         if SCREEN_CORNER_RADIUS > 0:
             painter.drawRoundedRect(
@@ -491,6 +604,64 @@ class AnimatedSlotWidget(QWidget):
             self._remaining_reels = 0
             self._is_spinning = False
             raise
+
+    def show_winning_paylines(
+        self,
+        indices: Sequence[int],
+    ) -> None:
+        self._winning_overlay.set_winning_paylines(indices)
+        self._winning_overlay.raise_()
+
+    def clear_winning_paylines(self) -> None:
+        self._winning_overlay.clear()
+
+    def set_sticky_screen(
+        self,
+        screen: Sequence[Sequence[Symbol | int]],
+        locked_mask: Sequence[Sequence[bool]],
+    ) -> None:
+        """Show sticky assets at locked row/reel positions."""
+        screen_rows = tuple(tuple(row) for row in screen)
+        mask_rows = tuple(tuple(bool(value) for value in row) for row in locked_mask)
+
+        if len(screen_rows) != self._visible_rows:
+            raise ValueError(
+                f"Expected {self._visible_rows} screen rows, "
+                f"received {len(screen_rows)}."
+            )
+        if len(mask_rows) != self._visible_rows:
+            raise ValueError(
+                f"Expected {self._visible_rows} mask rows, "
+                f"received {len(mask_rows)}."
+            )
+
+        for row_index, (screen_row, mask_row) in enumerate(
+            zip(screen_rows, mask_rows, strict=True)
+        ):
+            if len(screen_row) != self.reel_count:
+                raise ValueError(
+                    f"Screen row {row_index} must contain "
+                    f"{self.reel_count} reels."
+                )
+            if len(mask_row) != self.reel_count:
+                raise ValueError(
+                    f"Mask row {row_index} must contain "
+                    f"{self.reel_count} reels."
+                )
+
+        for reel_index, reel in enumerate(self._reels):
+            reel.set_sticky_symbols(
+                tuple(
+                    screen_rows[row_index][reel_index]
+                    if mask_rows[row_index][reel_index]
+                    else None
+                    for row_index in range(self._visible_rows)
+                )
+            )
+
+    def clear_sticky_symbols(self) -> None:
+        for reel in self._reels:
+            reel.clear_sticky_symbols()
 
     def current_stops(self) -> tuple[int, ...]:
         return tuple(reel.current_stop for reel in self._reels)

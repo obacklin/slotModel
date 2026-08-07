@@ -15,10 +15,6 @@ from slotmodel.sim.eval.scatter import (
     TriggerMask,
     scatter_bonus_trigger_mask
 )
-from slotmodel.sim.eval.scatter import (
-    TriggerMask,
-    scatter_bonus_trigger_mask
-)
 from slotmodel.sim.reels import Symbol
 from slotmodel.sim.screens import ScreenBatchArray
 
@@ -39,7 +35,7 @@ class BonusStepEvaluation:
             raise ValueError(
                 "winning_pos_mask must be 3-dim"
             )
-        if self.new_lock_mask != screen_shape:
+        if self.new_lock_mask.shape != screen_shape:
             raise ValueError(
                 "new_lock_mask must match winning_pos_mask in shape."
             )
