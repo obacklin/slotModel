@@ -4,12 +4,12 @@ import unittest
 
 import numpy as np
 
-from slotmodel.sim.analytics.bonus_game import (
+from slotmodel.sim.analytics import (
     simulate_bonus_free_spin_batch,
     simulate_bonus_games
 )
-from slotmodel.sim.eval import PaylineEvaluator
-from slotmodel.sim.eval.bonus import (
+from slotmodel.sim.eval import (
+    PaylineEvaluator,
     evaluate_bonus_step,
     overlay_locked_symbols,
     winning_pos_mask

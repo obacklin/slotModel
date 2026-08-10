@@ -4,11 +4,11 @@ import unittest
 
 import numpy as np
 
-from slotmodel.sim.paylines.payline_def import (
+from slotmodel.sim.paylines import (
+    PAYLINES,
     PaylineSet,
     compile_paylines,
 )
-from slotmodel.sim.paylines.paylines import PAYLINES
 
 
 class PaylineDefinitionTests(unittest.TestCase):

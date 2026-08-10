@@ -1,4 +1,4 @@
-from slotmodel.sim.screens.screen_batch import (
+from .screen_batch import (
     ScreenBatchArray,
     ScreenModel,
     SpinBatch,

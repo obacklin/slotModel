@@ -4,7 +4,7 @@ import unittest
 
 import numpy as np
 
-from slotmodel.sim.reels.reel_def import ReelSet
+from slotmodel.sim.reels import ReelSet
 from slotmodel.sim.screens import (
     ScreenModel,
     build_screens,

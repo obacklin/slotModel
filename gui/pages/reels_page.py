@@ -13,9 +13,7 @@ from PySide6.QtWidgets import (
 )
 
 from gui.pages.base_page import BasePage
-from slotmodel.sim.reels.read_reels import read_reels
-from slotmodel.sim.reels.reel_def import ReelSet
-from slotmodel.sim.reels.symbols import Symbol
+from slotmodel.sim.reels import ReelSet, Symbol, read_reels
 
 
 class ReelsPage(BasePage):

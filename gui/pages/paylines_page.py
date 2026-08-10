@@ -28,9 +28,7 @@ from gui.pages.base_page import BasePage
 from gui.widgets.payline_screen_widget import (
     PaylineScreenWidget,
 )
-from slotmodel.sim.paylines.paylines import (
-    PAYLINES,
-)
+from slotmodel.sim.paylines import PAYLINES
 from slotmodel.sim.reels import Symbol
 
 

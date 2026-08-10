@@ -1,11 +1,11 @@
-from slotmodel.sim.reels.read_reels import read_reels
-from slotmodel.sim.reels.reel_def import (
+from .read_reels import read_reels
+from .reel_def import (
     Reel,
     ReelMatrix,
     ReelSet,
     compile_reels,
 )
-from slotmodel.sim.reels.symbols import Symbol
+from .symbols import Symbol
 
 __all__ = [
     "Reel",
