@@ -7,10 +7,12 @@ from slotmodel.sim.eval.bonus import (
 )
 from slotmodel.sim.eval.payline_eval import (
     CompiledPaylines,
+    DEFAULT_MAX_WIN,
     MatchCountBatch,
     PaylineEvaluation,
     PaylineEvaluator,
     PayoutMultiplierBatch,
+    SpinMultiplierBatch,
     WinningSymbolBatch,
 )
 from slotmodel.sim.eval.scatter import (
@@ -24,10 +26,12 @@ __all__ = [
     "BonusStepEvaluation",
     "LockMaskBatch",
     "CompiledPaylines",
+    "DEFAULT_MAX_WIN",
     "MatchCountBatch",
     "PaylineEvaluation",
     "PaylineEvaluator",
     "PayoutMultiplierBatch",
+    "SpinMultiplierBatch",
     "ScatterCountBatch",
     "TriggerMask",
     "WinningSymbolBatch",

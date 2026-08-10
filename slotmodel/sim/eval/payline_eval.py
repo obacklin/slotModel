@@ -23,6 +23,9 @@ CompiledPaylines: TypeAlias = NDArray[np.int8]
 WinningSymbolBatch: TypeAlias = NDArray[np.int16]
 MatchCountBatch: TypeAlias = NDArray[np.int16]
 PayoutMultiplierBatch: TypeAlias = NDArray[np.float64]
+SpinMultiplierBatch: TypeAlias = NDArray[np.float64]
+
+DEFAULT_MAX_WIN = 10_000.0
 
 
 @dataclass(frozen=True, slots=True)
@@ -32,6 +35,7 @@ class PaylineEvaluation:
     winning_symbols: WinningSymbolBatch
     match_counts: MatchCountBatch
     payout_multipliers: PayoutMultiplierBatch
+    max_win: float = DEFAULT_MAX_WIN
 
     def __post_init__(self) -> None:
         expected_shape = self.winning_symbols.shape
@@ -51,14 +55,26 @@ class PaylineEvaluation:
                 "payout_multipliers must match winning_symbols in shape."
             )
 
+        if not np.isfinite(self.max_win) or self.max_win <= 0.0:
+            raise ValueError("max_win must be a positive finite value.")
+
     @property
-    def total_multiplier_per_spin(self) -> PayoutMultiplierBatch:
-        """Return the sum of all active payline wins for each spin."""
+    def uncapped_total_multiplier_per_spin(self) -> SpinMultiplierBatch:
+        """Return the raw sum of all active payline wins per spin."""
 
         return np.sum(
             self.payout_multipliers,
             axis=1,
             dtype=np.float64,
+        )
+
+    @property
+    def total_multiplier_per_spin(self) -> SpinMultiplierBatch:
+        """Return each spin total capped at ``max_win``."""
+
+        return np.minimum(
+            self.uncapped_total_multiplier_per_spin,
+            self.max_win,
         )
 
 
@@ -75,6 +91,7 @@ class PaylineEvaluator:
     minimum_match_count: int
     wild_symbol: int = int(Symbol.WILD)
     scatter_symbol: int = int(Symbol.SCATTER)
+    max_win: float = DEFAULT_MAX_WIN
 
     def __post_init__(self) -> None:
         if self.payline_rows.ndim != 2:
@@ -125,11 +142,15 @@ class PaylineEvaluator:
                 "wild_symbol and scatter_symbol must be different."
             )
 
+        if not np.isfinite(self.max_win) or self.max_win <= 0.0:
+            raise ValueError("max_win must be a positive finite value.")
+
     @classmethod
     def from_definitions(
         cls,
         paylines: PaylineSet,
         paytable: Paytable,
+        max_win: float = DEFAULT_MAX_WIN,
     ) -> PaylineEvaluator:
         """Compile validated payline and paytable definitions once."""
 
@@ -145,6 +166,7 @@ class PaylineEvaluator:
             payline_rows=payline_rows,
             payout_matrix=compile_paytable(paytable),
             minimum_match_count=paytable.minimum_match_count,
+            max_win=max_win,
         )
 
     @property
@@ -284,4 +306,5 @@ class PaylineEvaluator:
             winning_symbols=winning_symbols,
             match_counts=winning_match_counts,
             payout_multipliers=payout_multipliers,
+            max_win=self.max_win,
         )

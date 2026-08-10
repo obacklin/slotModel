@@ -356,8 +356,13 @@ def _simulate_bonus_game_batch(
             min_scatter_count=min_scatter_count,
         )
 
-        payout_multipliers[active_indices] += (
-            free_spin_result.payout_multipliers
+        active_payouts = (
+            payout_multipliers[active_indices]
+            + free_spin_result.payout_multipliers
+        )
+        payout_multipliers[active_indices] = np.minimum(
+            active_payouts,
+            evaluator.max_win,
         )
 
         free_spin_counts[active_indices] += 1
@@ -381,6 +386,14 @@ def _simulate_bonus_game_batch(
             retrigger_free_spins
             * free_spin_result.retrigger_counts
         )
+
+        reached_max_win = (
+            payout_multipliers[active_indices] >= evaluator.max_win
+        )
+        if np.any(reached_max_win):
+            remaining_free_spins[
+                active_indices[reached_max_win]
+            ] = 0
 
     return BonusGameSimulationResult(
         payout_multipliers=payout_multipliers,

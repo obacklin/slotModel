@@ -300,22 +300,39 @@ class BonusGameRuntime:
         retrigger_count = int(bool(evaluation.retrigger_mask[0]))
         retrigger_award = retrigger_count * self.retrigger_free_spins
 
-        if retrigger_award:
-            self._remaining_free_spins += retrigger_award
-            self._total_retriggers += retrigger_count
-
         locked_after = self._locked_mask | evaluation.new_lock_mask
         continues = bool(evaluation.cont_mask[0])
 
         terminal_payout = 0.0
+        reached_max_win = False
+
         if continues:
             self._locked_mask = locked_after
         else:
-            terminal_payout = float(
+            free_spin_payout = float(
                 evaluation.payline_evaluation.total_multiplier_per_spin[0]
+            )
+            remaining_to_cap = max(
+                0.0,
+                self.evaluator.max_win - self._total_payout_multiplier,
+            )
+            terminal_payout = min(
+                free_spin_payout,
+                remaining_to_cap,
             )
             self._total_payout_multiplier += terminal_payout
             self._completed_free_spins += 1
+            reached_max_win = (
+                self._total_payout_multiplier >= self.evaluator.max_win
+            )
+
+        if retrigger_award and not reached_max_win:
+            self._remaining_free_spins += retrigger_award
+            self._total_retriggers += retrigger_count
+
+        if reached_max_win:
+            self._remaining_free_spins = 0
+            retrigger_award = 0
 
         step = BonusAnimationStep(
             stops=stops,

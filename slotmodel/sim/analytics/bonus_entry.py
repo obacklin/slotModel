@@ -59,7 +59,7 @@ def simulate_bonus_entry_probability(
     ):
         trigger_mask = scatter_bonus_trigger_mask(
             screens=batch.screens,
-            minimum_scatter_count=minimum_scatter_count,
+            min_scatter_count=minimum_scatter_count,
         )
         bonus_entries += int(np.count_nonzero(trigger_mask))
 
