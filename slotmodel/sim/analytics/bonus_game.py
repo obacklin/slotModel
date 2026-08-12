@@ -220,6 +220,14 @@ def simulate_bonus_free_spin_batch(
         batch_size,
         dtype=np.int32
     )
+    collected_scatter_counts = np.zeros(
+        batch_size,
+        dtype=np.int32
+    )
+    retriggered_mask = np.zeros(
+        batch_size,
+        dtype=np.bool_
+    )
     active_mask = np.ones(
         batch_size,
         dtype=np.bool_
@@ -238,12 +246,25 @@ def simulate_bonus_free_spin_batch(
             min_scatter_count=min_scatter_count
         )
 
-        retrigger_counts[active_indices] += (
-            step.retrigger_mask.astype(
+        collected_scatter_counts[active_indices] += (
+            step.scatter_counts.astype(
                 np.int32,
                 copy=False
             )
         )
+
+        new_trigger_local = (
+            ~retriggered_mask[active_indices]
+            & (
+                collected_scatter_counts[active_indices]
+                >= min_scatter_count
+            )
+        )
+        new_retrigger_indices = active_indices[new_trigger_local]
+
+        if new_retrigger_indices.size:
+            retrigger_counts[new_retrigger_indices] = 1
+            retriggered_mask[new_retrigger_indices] = True
 
         continue_local = step.cont_mask
         terminal_local = ~continue_local

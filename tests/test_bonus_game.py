@@ -140,7 +140,7 @@ class BonusGameTests(unittest.TestCase):
         )
         np.testing.assert_array_equal(result, expected)
 
-    def test_each_screen_can_retrigger_once_and_scatters_stay_unlocked(
+    def test_free_spin_retriggers_at_most_once_and_scatters_stay_unlocked(
         self,
     ) -> None:
         j = int(Symbol.J)
@@ -174,7 +174,7 @@ class BonusGameTests(unittest.TestCase):
         )
         np.testing.assert_array_equal(
             result.retrigger_counts,
-            np.full(8, 2, dtype=np.int32),
+            np.ones(8, dtype=np.int32)
         )
         self.assertFalse(
             bool(
@@ -266,7 +266,58 @@ class BonusGameTests(unittest.TestCase):
             result.payout_multipliers,
             np.full(5, 20.0),
         )
+        
+    def test_scatter_hits_accumulate_across_respins_for_retrigger(self) -> None:
+        j = int(Symbol.J)
+        q = int(Symbol.Q)
+        scatter = int(Symbol.SCATTER)
 
+        reels: ReelSet = (
+            np.asarray([j, j], dtype=np.int16),
+            np.asarray([j, j], dtype=np.int16),
+            np.asarray([j, j], dtype=np.int16),
+            np.asarray([scatter, scatter], dtype=np.int16),
+            np.asarray([q, scatter], dtype=np.int16),
+        )
+        model = ScreenModel.from_reels(
+            reels=reels,
+            window_offsets=(0,),
+        )
+        evaluator = self.make_evaluator()
+        rng = ScriptedRng(
+            outputs=[
+                # Initial screen: J-J-J-SCATTER-Q.
+                np.asarray([[0, 0, 0, 0, 0]], dtype=np.int32),
+
+                # Guaranteed Wild goes over the first J:
+                # W-J-J-SCATTER-Q.
+                np.asarray([0], dtype=np.int32),
+
+                # Sticky W-J-J remain. The two free positions produce
+                # SCATTER-SCATTER:
+                # W-J-J-SCATTER-SCATTER.
+                np.asarray([[0, 0, 0, 0, 1]], dtype=np.int32),
+            ]
+        )
+
+        result = simulate_bonus_free_spin_batch(
+            model=model,
+            evaluator=evaluator,
+            batch_size=1,
+            rng=rng,  # type: ignore[arg-type]
+        )
+
+        # Initial screen collects 1 scatter.
+        # Respin collects another 2.
+        # 1 + 2 = 3 => one retrigger.
+        np.testing.assert_array_equal(
+            result.respin_counts,
+            np.asarray([1], dtype=np.int32),
+        )
+        np.testing.assert_array_equal(
+            result.retrigger_counts,
+            np.asarray([1], dtype=np.int32),
+        )
 
 if __name__ == "__main__":
     unittest.main()

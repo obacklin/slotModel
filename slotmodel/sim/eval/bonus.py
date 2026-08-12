@@ -12,8 +12,9 @@ from slotmodel.sim.eval.payline_eval import(
     PaylineEvaluation
 )
 from slotmodel.sim.eval.scatter import (
+    ScatterCountBatch,
     TriggerMask,
-    scatter_bonus_trigger_mask
+    count_scatter_symbols
 )
 from slotmodel.sim.reels import Symbol
 from slotmodel.sim.screens import ScreenBatchArray
@@ -24,6 +25,7 @@ LockMaskBatch: TypeAlias = NDArray[np.bool_]
 class BonusStepEvaluation:
     """Evaluate one screen in sticky respin."""
     payline_evaluation: PaylineEvaluation
+    scatter_counts: ScatterCountBatch
     retrigger_mask: TriggerMask
     winning_pos_mask: LockMaskBatch
     new_lock_mask: LockMaskBatch
@@ -139,13 +141,12 @@ def evaluate_bonus_step(
     win_mask &= screens != int(Symbol.SCATTER)
     new_lock_mask = win_mask & ~locked_mask
 
-    retrigger_mask = scatter_bonus_trigger_mask(
-        screens=screens,
-        min_scatter_count=min_scatter_count
-    )
+    scatter_counts = count_scatter_symbols(screens)
+    retrigger_mask = scatter_counts >= min_scatter_count
 
     return BonusStepEvaluation(
         payline_evaluation=payline_evaluation,
+        scatter_counts=scatter_counts,
         retrigger_mask=retrigger_mask,
         winning_pos_mask=win_mask,
         new_lock_mask=new_lock_mask

@@ -123,6 +123,18 @@ class SlotPage(BasePage):
         )
         self._free_spins_label.setFixedWidth(190)
 
+        self._scatter_count_label = QLabel(
+            self._format_collected_scatters(0)
+        )
+        self._scatter_count_label.setObjectName(
+            "scatterCountDisplay"
+        )
+        self._scatter_count_label.setAlignment(
+            Qt.AlignmentFlag.AlignLeft
+            | Qt.AlignmentFlag.AlignVCenter
+        )
+        self._scatter_count_label.setFixedWidth(190)
+
         self._status_label = QLabel(self._format_ready_status())
         self._status_label.setObjectName("statusLabel")
 
@@ -231,6 +243,10 @@ class SlotPage(BasePage):
             self._free_spins_label,
             alignment=Qt.AlignmentFlag.AlignLeft,
         )
+        control_layout.addWidget(
+            self._scatter_count_label,
+            alignment=Qt.AlignmentFlag.AlignLeft
+        )
 
         game_row = QHBoxLayout()
         game_row.setContentsMargins(0, 0, 0, 0)
@@ -315,6 +331,9 @@ class SlotPage(BasePage):
         self._free_spins_label.setText(
             self._format_free_spins_remaining(0)
         )
+        self._scatter_count_label.setText(
+            self._format_collected_scatters(0)
+        )
 
         self._pending_spin = _PendingSpin(
             spin=result,
@@ -337,6 +356,9 @@ class SlotPage(BasePage):
         self._slot_screen.set_bonus_mode(False)
         self._free_spins_label.setText(
             self._format_free_spins_remaining(0)
+        )
+        self._scatter_count_label.setText(
+            self._format_collected_scatters(0)
         )
         self._auto_spin_checkbox.setEnabled(True)
         self._set_spin_controls_enabled(True)
@@ -457,6 +479,9 @@ class SlotPage(BasePage):
                 self._bonus_runtime.remaining_free_spins
             )
         )
+        self._scatter_count_label.setText(
+            self._format_collected_scatters(0)
+        )
 
         self._status_label.setText(
             f"Bonus triggered with {scatter_count} scatters · "
@@ -489,6 +514,9 @@ class SlotPage(BasePage):
 
             if not step.is_respin:
                 self._slot_screen.clear_sticky_symbols()
+                self._scatter_count_label.setText(
+                    self._format_collected_scatters(0)
+                )
 
             # The guaranteed Wild is part of the bonus state before the reel
             # motion starts. Existing stickies are likewise retained during
@@ -563,6 +591,11 @@ class SlotPage(BasePage):
                     step.remaining_free_spins
                 )
             )
+            self._scatter_count_label.setText(
+                self._format_collected_scatters(
+                    step.collected_scatter_count
+                )
+            )
             self._status_label.setText(
                 self._format_bonus_step_result(step)
             )
@@ -592,6 +625,9 @@ class SlotPage(BasePage):
         self._free_spins_label.setText(
             self._format_free_spins_remaining(0)
         )
+        self._scatter_count_label.setText(
+            self._format_collected_scatters(0)
+        )
         self._auto_spin_checkbox.setEnabled(True)
         self._set_spin_controls_enabled(True)
         self._payout_label.setText(self._format_payout(total_payout))
@@ -612,6 +648,9 @@ class SlotPage(BasePage):
         self._free_spins_label.setText(
             self._format_free_spins_remaining(0)
         )
+        self._scatter_count_label.setText(
+            self._format_collected_scatters(0)
+        )
         self._auto_spin_checkbox.setEnabled(True)
         self._set_spin_controls_enabled(True)
         self._status_label.setText(f"Bonus animation failed: {error}")
@@ -629,6 +668,9 @@ class SlotPage(BasePage):
         self._payout_label.setText(self._format_payout(0.0))
         self._free_spins_label.setText(
             self._format_free_spins_remaining(0)
+        )
+        self._scatter_count_label.setText(
+            self._format_collected_scatters(0)
         )
         self._auto_spin_checkbox.setEnabled(True)
         self._set_spin_controls_enabled(True)
@@ -724,7 +766,11 @@ class SlotPage(BasePage):
 
     @staticmethod
     def _format_free_spins_remaining(count: int) -> str:
-        return f"Free Spins Remaining: {int(count)}"
+        return f"Free Spins: {int(count)}"
+
+    @staticmethod
+    def _format_collected_scatters(count: int) -> str:
+        return f"Scatters Collected: {int(count)}"
 
     @staticmethod
     def _format_payout(payout: float) -> str:

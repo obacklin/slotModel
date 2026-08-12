@@ -40,6 +40,7 @@ class BonusAnimationStep:
     free_spin_number: int
     respin_number: int
     remaining_free_spins: int
+    collected_scatter_count: int
     retrigger_free_spins_awarded: int
     terminal_payout_multiplier: float
 
@@ -78,6 +79,10 @@ class BonusAnimationStep:
         if self.terminal_payout_multiplier < 0.0:
             raise ValueError(
                 "terminal_payout_multiplier cannot be negative."
+            )
+        if self.collected_scatter_count < 0:
+            raise ValueError(
+                "collected_scatter_count cannot be negative."
             )
 
     @property
@@ -170,6 +175,16 @@ class BonusGameRuntime:
         default=0,
         repr=False,
     )
+    _current_collected_scatter_count: int = field(
+        init=False,
+        default=0,
+        repr=False
+    )
+    _current_retrigger_awarded: bool = field(
+        init=False,
+        default=False,
+        repr=False
+    )
 
     def __post_init__(self) -> None:
         if self.initial_free_spins <= 0:
@@ -230,6 +245,8 @@ class BonusGameRuntime:
         self._remaining_free_spins -= 1
         self._current_free_spin_number = self._completed_free_spins + 1
         self._current_respin_number = 0
+        self._current_collected_scatter_count = 0
+        self._current_retrigger_awarded = False
 
         sampled = spin_batch(
             model=self.model,
@@ -297,7 +314,19 @@ class BonusGameRuntime:
             min_scatter_count=self.min_scatter_count,
         )
 
-        retrigger_count = int(bool(evaluation.retrigger_mask[0]))
+        self._current_collected_scatter_count += int(
+            evaluation.scatter_counts[0]
+        )
+
+        retrigger_count = int(
+            not self._current_retrigger_awarded
+            and self._current_collected_scatter_count
+            >= self.min_scatter_count
+        )
+
+        if retrigger_count:
+            self._current_retrigger_awarded = True
+
         retrigger_award = retrigger_count * self.retrigger_free_spins
 
         locked_after = self._locked_mask | evaluation.new_lock_mask
@@ -347,6 +376,7 @@ class BonusGameRuntime:
             free_spin_number=self._current_free_spin_number,
             respin_number=self._current_respin_number,
             remaining_free_spins=self._remaining_free_spins,
+            collected_scatter_count=self._current_collected_scatter_count,
             retrigger_free_spins_awarded=retrigger_award,
             terminal_payout_multiplier=terminal_payout,
         )
@@ -355,6 +385,8 @@ class BonusGameRuntime:
             self._current_screen = None
             self._locked_mask = None
             self._current_respin_number = 0
+            self._current_collected_scatter_count = 0
+            self._current_retrigger_awarded = False
 
         return step
 

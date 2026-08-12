@@ -160,7 +160,8 @@ QWidget#winningPaylineOverlay {
     border: none;
 }
 
-QLabel#freeSpinsDisplay {
+QLabel#freeSpinsDisplay,
+QLabel#scatterCountDisplay {
     background-color: #22252a;
     color: #e5c76b;
     border: 1px solid #5f5331;

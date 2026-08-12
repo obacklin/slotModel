@@ -10,6 +10,7 @@ from slotmodel.sim.eval import (
 from slotmodel.sim.paylines import PAYLINES
 from slotmodel.sim.paytable import PAYTABLE
 from slotmodel.sim.screens import ScreenModel, spin_batch
+from slotmodel.sim.analytics import simulate_bonus_games
 
 @dataclass(frozen=True, slots=True)
 class ParameterReport:
@@ -51,6 +52,9 @@ def sim_report(
     )
     evaluation = evaluator.evaluate(batch.screens)
     multipliers = evaluation.total_multiplier_per_spin
+    
+
+
     rtp_base = float(np.mean(multipliers))
     # sample variance
     std = float(np.std(multipliers, ddof=1))
