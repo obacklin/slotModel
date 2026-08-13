@@ -10,7 +10,6 @@ from .bonus_game import (
 )
 from .parameter_reports import (
     ParameterReport,
-    estimate_bonus_freq,
     sim_report,
 )
 
@@ -19,7 +18,6 @@ __all__ = [
     "BonusFreeSpinBatchResult",
     "BonusGameSimulationResult",
     "ParameterReport",
-    "estimate_bonus_freq",
     "sim_report",
     "simulate_bonus_entry_probability",
     "simulate_bonus_free_spin_batch",
