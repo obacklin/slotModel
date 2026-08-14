@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import TypeAlias
 
 import numpy as np
@@ -25,7 +25,45 @@ MatchCountBatch: TypeAlias = NDArray[np.int16]
 PayoutMultiplierBatch: TypeAlias = NDArray[np.float64]
 SpinMultiplierBatch: TypeAlias = NDArray[np.float64]
 
+PaylinePositionGroup: TypeAlias = tuple[
+    int,
+    int,
+    NDArray[np.intp]
+]
+
+PaylinePositionGroups: TypeAlias = tuple[
+    PaylinePositionGroup,
+    ...
+]
+
+
 DEFAULT_MAX_WIN = 10_000.0
+
+def _compile_payline_position_groups(
+    payline_rows: CompiledPaylines,
+) -> PaylinePositionGroups:
+    """Group payline indices by physical ``(row, reel)`` position."""
+
+    groups: list[PaylinePositionGroup] = []
+
+    for reel_index in range(payline_rows.shape[1]):
+        reel_rows = payline_rows[:, reel_index]
+
+        for row_index in np.unique(reel_rows):
+            line_indices = np.flatnonzero(
+                reel_rows == row_index
+            )
+            line_indices.flags.writeable = False
+
+            groups.append(
+                (
+                    int(row_index),
+                    reel_index,
+                    line_indices,
+                )
+            )
+
+    return tuple(groups)
 
 
 @dataclass(frozen=True, slots=True)
@@ -93,6 +131,11 @@ class PaylineEvaluator:
     scatter_symbol: int = int(Symbol.SCATTER)
     max_win: float = DEFAULT_MAX_WIN
 
+    payline_position_groups: PaylinePositionGroups = field(
+        init=False,
+        repr=False
+    )
+
     def __post_init__(self) -> None:
         if self.payline_rows.ndim != 2:
             raise ValueError(
@@ -144,6 +187,12 @@ class PaylineEvaluator:
 
         if not np.isfinite(self.max_win) or self.max_win <= 0.0:
             raise ValueError("max_win must be a positive finite value.")
+
+        object.__setattr__(
+            self,
+            "payline_position_groups",
+            _compile_payline_position_groups(self.payline_rows)
+        )
 
     @classmethod
     def from_definitions(

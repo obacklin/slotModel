@@ -435,42 +435,52 @@ def simulate_bonus_games(
     min_scatter_count: int = 3,
 ) -> BonusGameSimulationResult:
     """
-    Simulate complete bonus games in bounded-memory batches.
+    Simulate complete bonus games.
     """
 
     if total_bonus_games <= 0:
         raise ValueError(
             "total_bonus_games must be positive."
         )
-
     if batch_size <= 0:
         raise ValueError("batch_size must be positive.")
-
     if initial_free_spins <= 0:
         raise ValueError(
             "initial_free_spins must be positive."
         )
-
     if retrigger_free_spins <= 0:
         raise ValueError(
             "retrigger_free_spins must be positive."
         )
-
     if min_scatter_count <= 0:
         raise ValueError(
             "minimum_scatter_count must be positive."
         )
-
     _validate_bonus_geometry(
         model=model,
         evaluator=evaluator,
     )
 
-    payout_parts: list[MultiplierBatch] = []
-    free_spin_parts: list[CountBatch] = []
-    respin_parts: list[CountBatch] = []
-    retrigger_parts: list[CountBatch] = []
-    winning_parts: list[CountBatch] = []
+    payout_multipliers = np.empty(
+        total_bonus_games,
+        dtype=np.float64,
+    )
+    free_spin_counts = np.empty(
+        total_bonus_games,
+        dtype=np.int32,
+    )
+    respin_counts = np.empty(
+        total_bonus_games,
+        dtype=np.int32,
+    )
+    retrigger_counts = np.empty(
+        total_bonus_games,
+        dtype=np.int32,
+    )
+    winning_free_spin_counts = np.empty(
+        total_bonus_games,
+        dtype=np.int32,
+    )
 
     completed_games = 0
 
@@ -479,6 +489,7 @@ def simulate_bonus_games(
             batch_size,
             total_bonus_games - completed_games,
         )
+        end = completed_games + current_batch_size
 
         batch_result = _simulate_bonus_game_batch(
             model=model,
@@ -490,38 +501,28 @@ def simulate_bonus_games(
             min_scatter_count=min_scatter_count,
         )
 
-        payout_parts.append(
+        payout_multipliers[completed_games:end] = (
             batch_result.payout_multipliers
         )
-        free_spin_parts.append(
+        free_spin_counts[completed_games:end] = (
             batch_result.free_spin_counts
         )
-        respin_parts.append(
+        respin_counts[completed_games:end] = (
             batch_result.respin_counts
         )
-        retrigger_parts.append(
+        retrigger_counts[completed_games:end] = (
             batch_result.retrigger_counts
         )
-        winning_parts.append(
+        winning_free_spin_counts[completed_games:end] = (
             batch_result.winning_free_spin_counts
         )
 
-        completed_games += current_batch_size
+        completed_games = end
 
     return BonusGameSimulationResult(
-        payout_multipliers=np.concatenate(
-            payout_parts
-        ),
-        free_spin_counts=np.concatenate(
-            free_spin_parts
-        ),
-        respin_counts=np.concatenate(
-            respin_parts
-        ),
-        retrigger_counts=np.concatenate(
-            retrigger_parts
-        ),
-        winning_free_spin_counts=np.concatenate(
-            winning_parts
-        )
+        payout_multipliers=payout_multipliers,
+        free_spin_counts=free_spin_counts,
+        respin_counts=respin_counts,
+        retrigger_counts=retrigger_counts,
+        winning_free_spin_counts=winning_free_spin_counts,
     )

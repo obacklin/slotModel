@@ -7,7 +7,6 @@ import numpy as np
 from numpy.typing import NDArray
 
 from slotmodel.sim.eval.payline_eval import(
-    CompiledPaylines,
     PaylineEvaluator,
     PaylineEvaluation
 )
@@ -61,27 +60,20 @@ class BonusStepEvaluation:
 
 def winning_pos_mask(
         evaluation: PaylineEvaluation,
-        payline_rows: CompiledPaylines,
+        evaluator: PaylineEvaluator,
         row_count: int,
 ) -> LockMaskBatch:
-    """Map paying prefixes back to screen pos."""
+    """Map paying prefixes back to physical screen positions."""
 
     if row_count <= 0:
         raise ValueError("row_count must be positive.")
-    if payline_rows.ndim != 2:
+
+    if evaluation.match_counts.shape[1] != evaluator.line_count:
         raise ValueError(
-            "payline_rows must have shape (line_count, reel_count)."
+            "The evaluation line count does not match the evaluator."
         )
 
-    line_count, reel_count = payline_rows.shape
-
-    if evaluation.match_counts.shape[1] != line_count:
-        raise ValueError(
-            "The evaluation line count does not match payline_rows."
-        )
-    if reel_count == 0:
-        raise ValueError("At least one reel required.")
-    if np.any(payline_rows < 0) or np.any(payline_rows >= row_count):
+    if int(np.max(evaluator.payline_rows)) >= row_count:
         raise ValueError(
             "A payline row index is outside supplied row count."
         )
@@ -89,21 +81,21 @@ def winning_pos_mask(
     batch_size = evaluation.match_counts.shape[0]
 
     result = np.zeros(
-        (batch_size, row_count, reel_count),
-        dtype=np.bool_
+        (
+            batch_size,
+            row_count,
+            evaluator.reel_count,
+        ),
+        dtype=np.bool_,
     )
 
-    for line_index in range(line_count):
-        match_counts = evaluation.match_counts[:, line_index]
-
-        for reel_index in range(reel_count):
-            row_index = int(
-                payline_rows[line_index, reel_index]
-            )
-
-            result[:, row_index, reel_index] |= (
-                match_counts > reel_index
-            )
+    for row_index, reel_index, line_indices in (
+        evaluator.payline_position_groups
+    ):
+        result[:, row_index, reel_index] = np.any(
+            evaluation.match_counts[:, line_indices] > reel_index,
+            axis=1,
+        )
 
     return result
 
@@ -134,7 +126,7 @@ def evaluate_bonus_step(
 
     win_mask = winning_pos_mask(
         evaluation=payline_evaluation,
-        payline_rows=evaluator.payline_rows,
+        evaluator=evaluator,
         row_count=screens.shape[1]
     )
 

@@ -101,6 +101,52 @@ class ScreenBatchTests(unittest.TestCase):
 
         self.assertEqual([batch.size for batch in batches], [4, 4, 2])
 
+    def test_visible_window_lookup_contains_every_reel_stop(
+    self,
+    ) -> None:
+        self.assertEqual(
+            self.model.visible_windows.shape,
+            (
+                self.model.reel_count,
+                self.model.row_count,
+                self.model.reel_length,
+            ),
+        )
+
+        self.assertEqual(
+            self.model.visible_windows.dtype,
+            np.int16,
+        )
+
+        self.assertFalse(
+            self.model.visible_windows.flags.writeable
+        )
+
+        stop_positions = np.arange(
+            self.model.reel_length,
+            dtype=np.int32,
+        )
+
+        for reel_index in range(self.model.reel_count):
+            for row_index, offset in enumerate(
+                self.model.window_offsets
+            ):
+                expected = self.model.reels[
+                    reel_index,
+                    (
+                        stop_positions + int(offset)
+                    ) % self.model.reel_length,
+                ]
+
+                np.testing.assert_array_equal(
+                    self.model.visible_windows[
+                        reel_index,
+                        row_index,
+                        :,
+                    ],
+                    expected,
+                )
+
 
 if __name__ == "__main__":
     unittest.main()

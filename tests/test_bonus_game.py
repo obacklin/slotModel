@@ -17,6 +17,7 @@ from slotmodel.sim.eval import (
 from slotmodel.sim.paytable import Paytable, PaytableEntry
 from slotmodel.sim.reels import ReelSet, Symbol
 from slotmodel.sim.screens import ScreenModel
+from slotmodel.sim.paylines import PAYLINES
 
 
 class ScriptedRng:
@@ -76,7 +77,7 @@ class BonusGameTests(unittest.TestCase):
         evaluation = evaluator.evaluate(screens)
         result = winning_pos_mask(
             evaluation=evaluation,
-            payline_rows=evaluator.payline_rows,
+            evaluator=evaluator,
             row_count=1,
         )
 
@@ -266,6 +267,10 @@ class BonusGameTests(unittest.TestCase):
             result.payout_multipliers,
             np.full(5, 20.0),
         )
+        np.testing.assert_array_equal(
+            result.winning_free_spin_counts,
+            np.full(5, 2, dtype=np.int32),
+        )
         
     def test_scatter_hits_accumulate_across_respins_for_retrigger(self) -> None:
         j = int(Symbol.J)
@@ -318,6 +323,61 @@ class BonusGameTests(unittest.TestCase):
             result.retrigger_counts,
             np.asarray([1], dtype=np.int32),
         )
+
+    def test_winning_position_mask_matches_reference_mapping(
+    self,
+    ) -> None:
+        evaluator = self.make_evaluator(
+            lines=PAYLINES.lines,
+        )
+
+        rng = np.random.default_rng(12345)
+
+        symbols = np.asarray(
+            [
+                int(Symbol.J),
+                int(Symbol.WILD),
+                int(Symbol.SCATTER),
+            ],
+            dtype=np.int16,
+        )
+
+        screens = rng.choice(
+            symbols,
+            size=(1_000, 3, 5),
+        ).astype(np.int16)
+
+        evaluation = evaluator.evaluate(screens)
+
+        result = winning_pos_mask(
+            evaluation=evaluation,
+            evaluator=evaluator,
+            row_count=3,
+        )
+
+        expected = np.zeros(
+            (screens.shape[0], 3, 5),
+            dtype=np.bool_,
+        )
+
+        line_count, reel_count = evaluator.payline_rows.shape
+
+        for line_index in range(line_count):
+            match_counts = evaluation.match_counts[:, line_index]
+
+            for reel_index in range(reel_count):
+                row_index = int(
+                    evaluator.payline_rows[
+                        line_index,
+                        reel_index,
+                    ]
+                )
+
+                expected[:, row_index, reel_index] |= (
+                    match_counts > reel_index
+                )
+
+        np.testing.assert_array_equal(result, expected)
 
 if __name__ == "__main__":
     unittest.main()

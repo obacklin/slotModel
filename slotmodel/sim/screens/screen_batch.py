@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterator
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import TypeAlias
 
 import numpy as np
@@ -17,7 +17,39 @@ from slotmodel.sim.reels.reel_def import (
 StopBatch: TypeAlias = NDArray[np.int32]
 ScreenBatchArray: TypeAlias = NDArray[np.int16]
 WindowOffsets: TypeAlias = NDArray[np.int32]
+VisibleWindowLookup: TypeAlias = NDArray[np.int16]
 
+def _compile_visible_windows(
+    reels: ReelMatrix,
+    window_offsets: WindowOffsets,
+) -> VisibleWindowLookup:
+    """Precompute the visible symbols for every reel stop."""
+
+    reel_length = reels.shape[1]
+
+    stop_positions = np.arange(
+        reel_length,
+        dtype=np.int32,
+    )
+
+    strip_indices = (
+        stop_positions[:, None]
+        + window_offsets[None, :]
+    ) % reel_length
+
+    # reels[:, strip_indices] has shape:
+    #
+    #     (reel, stop, row)
+    #
+    # Store as (reel, row, stop) so that the stop dimension
+    # is contiguous during screen construction.
+    visible_windows = np.ascontiguousarray(
+        reels[:, strip_indices].transpose(0, 2, 1)
+    )
+
+    visible_windows.flags.writeable = False
+
+    return visible_windows
 
 @dataclass(frozen=True, slots=True)
 class ScreenModel:
@@ -34,6 +66,21 @@ class ScreenModel:
 
     reels: ReelMatrix
     window_offsets: WindowOffsets
+
+    visible_windows: VisibleWindowLookup = field(
+        init=False,
+        repr=False
+    )
+
+    def __post_init__(self) -> None:
+        object.__setattr__(
+            self,
+            "visible_windows",
+            _compile_visible_windows(
+                reels=self.reels,
+                window_offsets=self.window_offsets
+            )
+        )
 
     @classmethod
     def from_reels(
@@ -184,16 +231,12 @@ def build_screens(
 
     reel_indices = np.arange(model.reel_count)
 
-    # Looping over the small number of visible rows avoids allocating one
-    # large (batch, row, reel) int32 index tensor.
-    for row_index, offset in enumerate(model.window_offsets):
-        strip_indices = (
-            stop_array + int(offset)
-        ) % model.reel_length
-
-        screens[:, row_index, :] = model.reels[
+    # Reel stops to window mapping is precomputed, is indexed lookup.
+    for row_index in range(model.row_count):
+        screens[:, row_index, :] = model.visible_windows[
             reel_indices,
-            strip_indices,
+            row_index,
+            stop_array
         ]
 
     return screens
