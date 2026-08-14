@@ -36,6 +36,13 @@ PaylinePositionGroups: TypeAlias = tuple[
     ...
 ]
 
+@dataclass(frozen=True, slots=True)
+class _PaylineOutcomeLookup:
+    """Precomputed outcome for every possible payline symbol sequence"""
+    winning_symbols: NDArray[np.int16]
+    match_counts: NDArray[np.int16]
+    payout_multipliers: NDArray[np.float64]
+
 
 DEFAULT_MAX_WIN = 10_000.0
 
@@ -64,6 +71,121 @@ def _compile_payline_position_groups(
             )
 
     return tuple(groups)
+
+def _compile_payline_outcome_lookup(
+    payout_matrix: PaytableMatrix,
+    minimum_match_count: int,
+    reel_count: int,
+    wild_symbol: int,
+    scatter_symbol: int,
+) -> _PaylineOutcomeLookup:
+    """Precompute the result of every possible payline sequence."""
+
+    symbol_count = int(payout_matrix.shape[0])
+    sequence_count = symbol_count ** reel_count
+
+    sequence_ids = np.arange(
+        sequence_count,
+        dtype=np.int32,
+    )
+    sequences = np.empty(
+        (sequence_count, reel_count),
+        dtype=np.int16,
+    )
+
+    remaining = sequence_ids.copy()
+
+    for reel_index in range(reel_count - 1, -1, -1):
+        sequences[:, reel_index] = remaining % symbol_count
+        remaining //= symbol_count
+
+    is_wild = sequences == wild_symbol
+    is_non_wild = ~is_wild
+    has_non_wild = np.any(is_non_wild, axis=1)
+
+    first_non_wild_indices = np.argmax(
+        is_non_wild,
+        axis=1,
+    )
+    first_non_wild_symbols = sequences[
+        sequence_ids,
+        first_non_wild_indices,
+    ]
+
+    target_symbols = np.where(
+        has_non_wild
+        & (first_non_wild_symbols != scatter_symbol),
+        first_non_wild_symbols,
+        wild_symbol,
+    ).astype(np.int16, copy=False)
+
+    matches_target = (
+        sequences == target_symbols[:, np.newaxis]
+    )
+    wild_substitutions = is_wild & (
+        target_symbols[:, np.newaxis] != wild_symbol
+    )
+    connected_matches = (
+        matches_target | wild_substitutions
+    )
+
+    connected_prefix = np.logical_and.accumulate(
+        connected_matches,
+        axis=1,
+    )
+    match_counts = np.sum(
+        connected_prefix,
+        axis=1,
+        dtype=np.int16,
+    )
+
+    base_payout_multipliers = payout_matrix[
+        target_symbols,
+        match_counts,
+    ]
+    base_payout_multipliers = np.where(
+        match_counts >= minimum_match_count,
+        base_payout_multipliers,
+        0,
+    ).astype(np.float64, copy=False)
+
+    wild_counts = np.sum(
+        is_wild & connected_prefix,
+        axis=1,
+        dtype=np.int16,
+    )
+    wild_multipliers = np.left_shift(
+        np.int64(1),
+        wild_counts,
+    )
+
+    payout_multipliers = (
+        base_payout_multipliers * wild_multipliers
+    ).astype(np.float64, copy=False)
+
+    win_mask = payout_multipliers > 0.0
+
+    winning_symbols = np.where(
+        win_mask,
+        target_symbols,
+        -1,
+    ).astype(np.int16, copy=False)
+
+    winning_match_counts = np.where(
+        win_mask,
+        match_counts,
+        0,
+    ).astype(np.int16, copy=False)
+
+    winning_symbols.flags.writeable = False
+    winning_match_counts.flags.writeable = False
+    payout_multipliers.flags.writeable = False
+
+    return _PaylineOutcomeLookup(
+        winning_symbols=winning_symbols,
+        match_counts=winning_match_counts,
+        payout_multipliers=payout_multipliers,
+    )
 
 
 @dataclass(frozen=True, slots=True)
@@ -135,6 +257,10 @@ class PaylineEvaluator:
         init=False,
         repr=False
     )
+    _outcome_lookup: _PaylineOutcomeLookup = field(
+        init=False,
+        repr=False,
+    )
 
     def __post_init__(self) -> None:
         if self.payline_rows.ndim != 2:
@@ -192,6 +318,17 @@ class PaylineEvaluator:
             self,
             "payline_position_groups",
             _compile_payline_position_groups(self.payline_rows)
+        )
+        object.__setattr__(
+            self,
+            "_outcome_lookup",
+            _compile_payline_outcome_lookup(
+                payout_matrix=self.payout_matrix,
+                minimum_match_count=self.minimum_match_count,
+                reel_count=self.reel_count,
+                wild_symbol=self.wild_symbol,
+                scatter_symbol=self.scatter_symbol,
+            ),
         )
 
     @classmethod
@@ -264,92 +401,31 @@ class PaylineEvaluator:
                 "A payline row index is outside the supplied screen."
             )
 
-        reel_indices = np.arange(self.reel_count)
-        line_symbols = screens[
+        symbol_count = int(self.payout_matrix.shape[0])
+
+        sequence_ids = screens[
             :,
-            self.payline_rows,
-            reel_indices,
-        ]
-
-        is_wild = line_symbols == self.wild_symbol
-        is_non_wild = ~is_wild
-        has_non_wild = np.any(is_non_wild, axis=2)
-
-        first_non_wild_indices = np.argmax(
-            is_non_wild,
-            axis=2,
-        )
-        first_non_wild_symbols = np.take_along_axis(
-            line_symbols,
-            first_non_wild_indices[..., np.newaxis],
-            axis=2,
-        )[..., 0]
-
-        # If the line is all wilds, or if scatter is the first non-wild
-        # symbol, the connected leading wild prefix is evaluated as WILD.
-        target_symbols = np.where(
-            has_non_wild
-            & (first_non_wild_symbols != self.scatter_symbol),
-            first_non_wild_symbols,
-            self.wild_symbol,
-        ).astype(np.int16, copy=False)
-
-        matches_target = line_symbols == target_symbols[..., np.newaxis]
-        wild_substitutions = is_wild & (
-            target_symbols[..., np.newaxis] != self.wild_symbol
-        )
-        connected_matches = matches_target | wild_substitutions
-
-        connected_prefix = np.logical_and.accumulate(
-            connected_matches,
-            axis=2,
-        )
-        match_counts = np.sum(
-            connected_prefix,
-            axis=2,
-            dtype=np.int16,
-        )
-
-        base_payout_multipliers = self.payout_matrix[
-            target_symbols,
-            match_counts,
-        ]
-
-        qualifies = match_counts >= self.minimum_match_count
-
-        base_payout_multipliers = np.where(
-            qualifies,
-            base_payout_multipliers,
+            self.payline_rows[:, 0],
             0,
-        ).astype(np.float64, copy=False)
+        ].astype(np.int32, copy=True)
 
-        wild_counts = np.sum(
-            is_wild & connected_prefix,
-            axis=2,
-            dtype=np.int16
-        )
-        wild_multipliers = np.left_shift(
-            np.int64(1),
-            wild_counts,
-        )
+        for reel_index in range(1, self.reel_count):
+            sequence_ids *= symbol_count
+            sequence_ids += screens[
+                :,
+                self.payline_rows[:, reel_index],
+                reel_index,
+            ]
 
+        winning_symbols = (
+            self._outcome_lookup.winning_symbols[sequence_ids]
+        )
+        winning_match_counts = (
+            self._outcome_lookup.match_counts[sequence_ids]
+        )
         payout_multipliers = (
-            base_payout_multipliers * wild_multipliers
-        ).astype(np.float64, copy=False)
-
-        win_mask = payout_multipliers > 0.0
-
-        winning_symbols = np.where(
-            win_mask,
-            target_symbols,
-            -1,
-        ).astype(np.int16, copy=False)
-
-        winning_match_counts = np.where(
-            win_mask,
-            match_counts,
-            0,
-        ).astype(np.int16, copy=False)
+            self._outcome_lookup.payout_multipliers[sequence_ids]
+        )
 
         return PaylineEvaluation(
             winning_symbols=winning_symbols,
