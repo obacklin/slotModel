@@ -13,6 +13,87 @@ NUMBER_OF_REELS = 5
 REEL_LENGTH = 51
 
 
+def generate_reel_population(
+    probabilities: dict[Symbol, float],
+    population_size: int,
+    number_of_reels: int,
+    reel_length: int, 
+    required_symbols: tuple[Symbol, ...] = tuple(Symbol),
+    seed: int | None = None,
+) -> np.ndarray:
+    """Generate an in-memory population of valid reel matrices.
+
+    The returned array has shape:
+
+        (population_size, number_of_reels, reel_length)
+
+    """
+
+    if population_size <= 0:
+        raise ValueError("population_size must be positive.")
+    if number_of_reels <= 0:
+        raise ValueError("number_of_reels must be positive.")
+    if reel_length <= 0:
+        raise ValueError("reel_length must be positive.")
+    if not probabilities:
+        raise ValueError("At least one symbol probability is required.")
+
+    symbols = tuple(probabilities.keys())
+
+    symbol_ids = np.asarray(
+        [int(symbol) for symbol in symbols],
+        dtype=np.int16,
+    )
+
+    weights = np.asarray(
+        [probabilities[symbol] for symbol in symbols],
+        dtype=np.float64,
+    )
+
+    if np.any(~np.isfinite(weights)):
+        raise ValueError("Probabilities must be finite numbers.")
+    if np.any(weights < 0):
+        raise ValueError("Probabilities cannot be negative.")
+    if weights.sum() <= 0:
+        raise ValueError("At least one probability must be positive.")
+
+    required = tuple(dict.fromkeys(required_symbols))
+
+    if len(required) > reel_length:
+        raise ValueError(
+            "reel_length must be at least the number of required symbols."
+        )
+
+    required_ids = np.asarray(
+        [int(symbol) for symbol in required],
+        dtype=np.int16,
+    )
+
+    weights /= weights.sum()
+
+    rng = np.random.default_rng(seed)
+
+    population = rng.choice(
+        symbol_ids,
+        size=(population_size, number_of_reels, reel_length),
+        replace=True,
+        p=weights,
+    ).astype(np.int16)
+
+    # Force every required symbol onto every physical reel.
+    # The reel is then shuffled so they do not occupy fixed positions.
+    required_count = required_ids.size
+
+    if required_count:
+        population[:, :, :required_count] = required_ids
+
+        for candidate in population:
+            for reel in candidate:
+                rng.shuffle(reel)
+
+    return population
+
+
 def generate_weighted_reels(
     probabilities: dict[Symbol, float],
     number_of_reels: int = NUMBER_OF_REELS,
