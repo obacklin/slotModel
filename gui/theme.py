@@ -75,6 +75,39 @@ QStackedWidget#pageStack {
 }
 
 
+
+
+/* ---------------------------------------------------------
+   Reel profile selector
+   --------------------------------------------------------- */
+
+QComboBox#profileCombo {
+    background-color: #24272c;
+    color: #e6e8eb;
+    border: 1px solid #3b3f46;
+    border-radius: 7px;
+    min-height: 36px;
+    padding: 0 10px;
+}
+
+QComboBox#profileCombo:hover {
+    border-color: #555b65;
+}
+
+QComboBox#profileCombo::drop-down {
+    border: none;
+    width: 24px;
+}
+
+QComboBox#profileCombo QAbstractItemView {
+    background-color: #24272c;
+    color: #e6e8eb;
+    border: 1px solid #3b3f46;
+    selection-background-color: #3b4266;
+    selection-color: #ffffff;
+}
+
+
 /* ---------------------------------------------------------
    Main content
    --------------------------------------------------------- */
@@ -322,6 +355,61 @@ QTableWidget#paytableTable QHeaderView::section {
     padding: 10px 12px;
     font-weight: 600;
 }
+
+
+
+/* ---------------------------------------------------------
+   Statistics
+   --------------------------------------------------------- */
+
+QScrollArea#statisticsScrollArea,
+QWidget#statisticsContent {
+    background-color: transparent;
+    border: none;
+}
+
+QFrame#metricCard {
+    background-color: #24272c;
+    border: 1px solid #383c43;
+    border-radius: 8px;
+}
+
+QLabel#metricValue {
+    background-color: transparent;
+    color: #f2f3f5;
+    font-size: 17px;
+    font-weight: 700;
+}
+
+QLabel#metricLabel {
+    background-color: transparent;
+    color: #9299a3;
+    font-size: 12px;
+}
+
+QTableWidget#statisticsTable {
+    background-color: #24272c;
+    alternate-background-color: #292c31;
+    color: #e6e8eb;
+    border: 1px solid #383c43;
+    border-radius: 8px;
+}
+
+QTableWidget#statisticsTable::item {
+    border: none;
+    border-bottom: 1px solid #30343a;
+    padding: 6px 10px;
+}
+
+QTableWidget#statisticsTable QHeaderView::section {
+    background-color: #1f2226;
+    color: #aeb4bd;
+    border: none;
+    border-bottom: 1px solid #3b3f46;
+    padding: 9px 10px;
+    font-weight: 600;
+}
+
 
 /* ---------------------------------------------------------
    Scrollbars

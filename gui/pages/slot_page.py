@@ -19,6 +19,7 @@ from PySide6.QtWidgets import (
 from gui.pages.base_page import BasePage
 from gui.widgets.animated_slot_widget import AnimatedSlotWidget
 from gui.widgets.scalable_slot_view import ScalableSlotView
+from slotmodel.reel_profiles import ReelProfile
 from slotmodel.runtime_tools import (
     BonusAnimationStep,
     BonusGameRuntime,
@@ -58,7 +59,7 @@ class _PendingSpin:
 class SlotPage(BasePage):
     """Main slot-game workspace for individual backend spins."""
 
-    def __init__(self) -> None:
+    def __init__(self, profile: ReelProfile) -> None:
         super().__init__(
             title="Slot",
             description=(
@@ -68,13 +69,14 @@ class SlotPage(BasePage):
             expand_body=True,
         )
 
+        self._profile = profile
         self._rng = np.random.default_rng()
         self._pending_spin: _PendingSpin | None = None
         self._pending_bonus_step: BonusAnimationStep | None = None
         self._bonus_runtime: BonusGameRuntime | None = None
 
         try:
-            reels = read_reels()
+            reels = read_reels(profile.reels_path)
             self._screen_model = ScreenModel.from_reels(
                 reels=reels,
                 window_offsets=WINDOW_OFFSETS,
@@ -170,7 +172,7 @@ class SlotPage(BasePage):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(8)
 
-        section_title = QLabel("Slot spin")
+        section_title = QLabel(f"Slot spin · {self._profile.label}")
         section_title.setObjectName("cardTitle")
 
         section_description = QLabel(

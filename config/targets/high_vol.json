@@ -1,0 +1,78 @@
+{
+  "name": "high_vol",
+  "description": "95% RTP, rare/high-value bonus, sparse base hits, heavy bonus tail.",
+  "simulation": {
+    "base_spins": 500000,
+    "bonus_games": 500000,
+    "final_base_spins": 1000000,
+    "final_bonus_games": 1000000,
+    "min_scatter": 3,
+    "initial_free_spins": 10,
+    "retrigger_free_spins": 10,
+    "max_win": 10000.0
+  },
+  "optimizer": {
+    "population_size": 30,
+    "generations": 150,
+    "crossover_rate": 0.8,
+    "mutation_rate": 0.03,
+    "tournament_size": 3,
+    "elite_count": 2,
+    "max_workers": 6,
+    "initial_candidate_concentration": 24.0,
+    "initial_reel_concentration": 70.0,
+    "reel_length": 51
+  },
+  "targets": {
+    "rtp_total": {
+      "value": 0.95,
+      "tolerance": 0.02,
+      "weight": 10.0
+    },
+    "rtp_bonus": {
+      "value": 0.4,
+      "tolerance": 0.02,
+      "weight": 10.0
+    },
+    "bonus_freq": {
+      "value": 0.0125,
+      "tolerance": 0.0015,
+      "weight": 10.0
+    },
+    "base_win_prob": {
+      "value": 0.09,
+      "tolerance": 0.01,
+      "weight": 5.0
+    },
+    "base_0_to_5_prob": {
+      "value": 0.07,
+      "tolerance": 0.01,
+      "weight": 1.5
+    },
+    "base_5_to_20_prob": {
+      "value": 0.013,
+      "tolerance": 0.003,
+      "weight": 1.5
+    },
+    "base_20_to_50_prob": {
+      "value": 0.005,
+      "tolerance": 0.0015,
+      "weight": 1.0
+    },
+    "base_over_50_prob": {
+      "value": 0.002,
+      "tolerance": 0.0010,
+      "weight": 1.0
+    },
+    "bonus_over_100_prob": {
+      "value": 0.08,
+      "tolerance": 0.05,
+      "weight": 1.5
+    },
+    "bonus_over_250_prob": {
+      "value": 0.02,
+      "tolerance": 0.02,
+      "weight": 1.0
+    }
+  }
+}

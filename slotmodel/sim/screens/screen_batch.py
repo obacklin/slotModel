@@ -56,10 +56,10 @@ class ScreenModel:
     """
     Simulation-ready reel strips and visible-window geometry.
 
-    ``reels`` has shape ``(reel_count, reel_length)``.
-    ``window_offsets`` has shape ``(row_count,)``.
+    reels has shape (reel_count, reel_length).
+    window_offsets has shape (row_count,).
 
-    A stop position identifies offset zero. With offsets ``[0, 1, 2]``,
+    A stop position identifies offset zero. With offsets [0, 1, 2],
     the stop is the symbol displayed in the top row and the next two
     strip positions appear below it.
     """
@@ -110,8 +110,8 @@ class SpinBatch:
     """
     A batch of base-game outcomes.
 
-    ``stops`` has shape ``(batch_size, reel_count)``.
-    ``screens`` has shape ``(batch_size, row_count, reel_count)``.
+    stops has shape (batch_size, reel_count).
+    screens has shape (batch_size, row_count, reel_count).
     """
 
     stops: StopBatch
@@ -191,7 +191,7 @@ def build_screens(
     """
     Build a batch of screens from predetermined stop positions.
 
-    The output layout is ``(spin, row, reel)``. Reel strips wrap around
+    The output layout is (spin, row, reel). Reel strips wrap around
     with modular indexing.
     """
 

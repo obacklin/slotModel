@@ -17,16 +17,27 @@ def generate_reel_population(
     probabilities: dict[Symbol, float],
     population_size: int,
     number_of_reels: int,
-    reel_length: int, 
+    reel_length: int,
     required_symbols: tuple[Symbol, ...] = tuple(Symbol),
     seed: int | None = None,
+    candidate_concentration: float | None = None,
+    reel_concentration: float | None = None,
 ) -> np.ndarray:
     """Generate an in-memory population of valid reel matrices.
 
-    The returned array has shape:
+    The returned array has shape::
 
         (population_size, number_of_reels, reel_length)
 
+    By default every candidate uses the same normalized ``probabilities``.
+    Setting ``candidate_concentration`` enables Dirichlet jitter around those
+    base weights, so each candidate starts with a meaningfully different
+    symbol-frequency profile.  ``reel_concentration`` optionally adds a
+    second level of jitter between physical reels inside one candidate.
+
+    Larger concentration values stay closer to the parent distribution;
+    smaller values create more variety.  A value around 20-40 is deliberately
+    broad for a 12-symbol, 51-stop reel set.
     """
 
     if population_size <= 0:
@@ -39,12 +50,10 @@ def generate_reel_population(
         raise ValueError("At least one symbol probability is required.")
 
     symbols = tuple(probabilities.keys())
-
     symbol_ids = np.asarray(
         [int(symbol) for symbol in symbols],
         dtype=np.int16,
     )
-
     weights = np.asarray(
         [probabilities[symbol] for symbol in symbols],
         dtype=np.float64,
@@ -57,8 +66,16 @@ def generate_reel_population(
     if weights.sum() <= 0:
         raise ValueError("At least one probability must be positive.")
 
-    required = tuple(dict.fromkeys(required_symbols))
+    for name, concentration in (
+        ("candidate_concentration", candidate_concentration),
+        ("reel_concentration", reel_concentration),
+    ):
+        if concentration is not None and (
+            not np.isfinite(concentration) or concentration <= 0.0
+        ):
+            raise ValueError(f"{name} must be a positive finite number.")
 
+    required = tuple(dict.fromkeys(required_symbols))
     if len(required) > reel_length:
         raise ValueError(
             "reel_length must be at least the number of required symbols."
@@ -70,26 +87,53 @@ def generate_reel_population(
     )
 
     weights /= weights.sum()
-
     rng = np.random.default_rng(seed)
 
-    population = rng.choice(
-        symbol_ids,
-        size=(population_size, number_of_reels, reel_length),
-        replace=True,
-        p=weights,
-    ).astype(np.int16)
+    population = np.empty(
+        (population_size, number_of_reels, reel_length),
+        dtype=np.int16,
+    )
+    free_stop_count = reel_length - required_ids.size
 
-    # Force every required symbol onto every physical reel.
-    # The reel is then shuffled so they do not occupy fixed positions.
-    required_count = required_ids.size
+    # Dirichlet requires strictly positive alpha values.  Zero-weight symbols
+    # remain possible only through required_symbols; the tiny floor merely
+    # keeps the distribution numerically valid when jitter is enabled.
+    alpha_floor = 1e-6
 
-    if required_count:
-        population[:, :, :required_count] = required_ids
+    for candidate_index in range(population_size):
+        if candidate_concentration is None:
+            candidate_weights = weights
+        else:
+            candidate_alpha = np.maximum(
+                weights * candidate_concentration,
+                alpha_floor,
+            )
+            candidate_weights = rng.dirichlet(candidate_alpha)
 
-        for candidate in population:
-            for reel in candidate:
-                rng.shuffle(reel)
+        for reel_index in range(number_of_reels):
+            if reel_concentration is None:
+                reel_weights = candidate_weights
+            else:
+                reel_alpha = np.maximum(
+                    candidate_weights * reel_concentration,
+                    alpha_floor,
+                )
+                reel_weights = rng.dirichlet(reel_alpha)
+
+            reel = population[candidate_index, reel_index]
+
+            if required_ids.size:
+                reel[:required_ids.size] = required_ids
+
+            if free_stop_count:
+                reel[required_ids.size:] = rng.choice(
+                    symbol_ids,
+                    size=free_stop_count,
+                    replace=True,
+                    p=reel_weights,
+                )
+
+            rng.shuffle(reel)
 
     return population
 

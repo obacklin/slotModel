@@ -24,7 +24,7 @@ LockMask: TypeAlias = NDArray[np.bool_]
 class BonusAnimationStep:
     """One GUI-ready screen in a single bonus game.
 
-    ``stops`` are always the actual sampled backend reel stops. ``screen`` is
+    stops are always the actual sampled backend reel stops. screen is
     the screen that must be visible after applying the sticky-symbol overlay.
     The two lock masks describe the visual state before and after evaluating
     this screen.
@@ -133,10 +133,9 @@ class BonusAnimationStep:
 class BonusGameRuntime:
     """Step a single sticky-respin bonus game for presentation/runtime use.
 
-    This class mirrors the bonus simulation rules one screen at a time so a
-    GUI can animate every free spin and respin. It deliberately lives outside
-    ``slotmodel.sim.analytics``: analytics remains batch-oriented, while this
-    adapter retains the state needed by an interactive runtime.
+    This class mirrors the bonus simulation rules one screen at a time so
+    GUI can animate every free spin and respin. this retains the state needed 
+    by an interactive runtime.
     """
 
     model: ScreenModel

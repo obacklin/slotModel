@@ -13,7 +13,7 @@ ReelMatrix: TypeAlias = NDArray[np.int16]
 
 def compile_reels(reels: ReelSet) -> ReelMatrix:
     """
-    Stack a validated reel set into one simulation-ready matrix.
+    Stack a validated reel set into one numpy array.
 
     The returned array has shape ``(reel_count, reel_length)``.
     The current reel JSON format requires all reels to have equal length.
@@ -48,7 +48,7 @@ def compile_reels(reels: ReelSet) -> ReelMatrix:
 
     reel_matrix = np.stack(reels, axis=0)
 
-    # The matrix represents game configuration and must not be mutated
+    # The matrix represents game configuration and must not be edited
     # during a simulation.
     reel_matrix.flags.writeable = False
 

@@ -1,15 +1,26 @@
 from __future__ import annotations
-from typing import TypeAlias
+
+from concurrent.futures import ThreadPoolExecutor
+from dataclasses import dataclass
+from typing import Any, TypeAlias
 
 import numpy as np
 from numpy.typing import NDArray
-from dataclasses import dataclass
+
 from slotmodel.sim import Symbol
 from slotmodel.sim.reels import generate_reel_population
 
 FitnessArray: TypeAlias = NDArray[np.float64] 
 ReelPopulation: TypeAlias = NDArray[np.int16]
 ReelMatrix: TypeAlias = NDArray[np.int16]
+
+
+@dataclass(frozen=True, slots=True)
+class FitnessEvaluation:
+    """Fitness value plus optional caller-owned evaluation metadata."""
+
+    value: float
+    payload: Any = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -24,6 +35,9 @@ class OptimizerConfig:
     elite_count: int = 1
     maximize: bool = True
     max_generation: int = 100
+    max_workers: int = 1
+    initial_candidate_concentration: float | None = 30.0
+    initial_reel_concentration: float | None = 90.0
 
 class Optimizer:
     """Genetic optimization of reel symbols.
@@ -42,21 +56,45 @@ class Optimizer:
         self._fitness_fun = fitness_fun
         self._population: ReelPopulation | None = None
         self._fitness : FitnessArray | None  = None
+        self._evaluation_payloads: tuple[Any, ...] | None = None
         self._generation = 0
         self._rng = np.random.default_rng(seed)
 
+        if self.config.reel_len <= 0:
+            raise ValueError("reel_len must be positive.")
+        if self.config.n_reels <= 0:
+            raise ValueError("n_reels must be positive.")
+        if self.config.population_size <= 0:
+            raise ValueError("population_size must be positive.")
+        if not 0.0 <= self.config.crossover_rate <= 1.0:
+            raise ValueError("crossover_rate must be between 0 and 1.")
+        if not 0.0 <= self.config.mutation_rate <= 1.0:
+            raise ValueError("mutation_rate must be between 0 and 1.")
+        if not 1 <= self.config.tournament_size <= self.config.population_size:
+            raise ValueError(
+                "tournament_size must be between 1 and population_size."
+            )
+        if not 0 <= self.config.elite_count <= self.config.population_size:
+            raise ValueError(
+                "elite_count must be between 0 and population_size."
+            )
+        if self.config.max_generation <= 0:
+            raise ValueError("max_generation must be positive.")
+        if self.config.max_workers <= 0:
+            raise ValueError("max_workers must be positive.")
+
         self._probs = {
-            Symbol.SCATTER: 0.01,
-            Symbol.WILD: 0.01,
-            Symbol.JEWEL: 0.02,
-            Symbol.CASTLE: 0.03,
-            Symbol.CHEST: 0.03,
-            Symbol.COIN: 0.04,
-            Symbol.KNIGHT: 0.04,
-            Symbol.A : 0.05,
-            Symbol.K : 0.06,
-            Symbol.Q : 0.07,
-            Symbol.J : 0.08,
+            Symbol.SCATTER: 0.05,
+            Symbol.WILD: 0.05,
+            Symbol.JEWEL: 0.05,
+            Symbol.CASTLE: 0.08,
+            Symbol.CHEST: 0.08,
+            Symbol.COIN: 0.09,
+            Symbol.KNIGHT: 0.09,
+            Symbol.A : 0.1,
+            Symbol.K : 0.1,
+            Symbol.Q : 0.1,
+            Symbol.J : 0.1,
             Symbol.PAWN: 0.1,
         }
         self._symbols = np.asarray(
@@ -91,6 +129,10 @@ class Optimizer:
             number_of_reels=self.n_reels,
             reel_length=self.reel_len,
             seed=population_seed,
+            candidate_concentration=(
+                self.config.initial_candidate_concentration
+            ),
+            reel_concentration=self.config.initial_reel_concentration,
         )
 
     def step(self) -> None:
@@ -132,6 +174,7 @@ class Optimizer:
 
         self._population = next_population
         self._fitness = None
+        self._evaluation_payloads = None
 
         self._generation += 1
 
@@ -148,6 +191,14 @@ class Optimizer:
         assert self._fitness is not None
 
         return self._fitness
+
+    def evaluation_payloads(self) -> tuple[Any, ...]:
+        """Return metadata produced alongside current-generation fitness."""
+
+        self.fitness()
+
+        assert self._evaluation_payloads is not None
+        return self._evaluation_payloads
 
     def best_index(self) -> int:
         fitness = self.fitness()
@@ -191,11 +242,36 @@ class Optimizer:
             )
         )
 
-        for i, candidate in enumerate(population):
-            value = self._fitness_fun(
+        def evaluate(candidate: ReelMatrix) -> object:
+            return self._fitness_fun(
                 candidate,
                 evaluation_seed,
             )
+
+        if self.config.max_workers == 1:
+            raw_results = [
+                evaluate(candidate)
+                for candidate in population
+            ]
+        else:
+            with ThreadPoolExecutor(
+                max_workers=self.config.max_workers
+            ) as executor:
+                # executor.map preserves input order even when workers finish
+                # out of order, keeping GA results deterministic.
+                raw_results = list(
+                    executor.map(evaluate, population)
+                )
+
+        payloads: list[Any] = []
+
+        for i, result in enumerate(raw_results):
+            if isinstance(result, FitnessEvaluation):
+                value = float(result.value)
+                payload = result.payload
+            else:
+                value = float(result)
+                payload = None
 
             if not np.isfinite(value):
                 raise ValueError(
@@ -203,8 +279,10 @@ class Optimizer:
                 )
 
             fitness[i] = value
+            payloads.append(payload)
 
         self._fitness = fitness
+        self._evaluation_payloads = tuple(payloads)
 
     def _select_elites(
         self,

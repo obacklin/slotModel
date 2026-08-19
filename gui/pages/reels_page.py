@@ -13,13 +13,14 @@ from PySide6.QtWidgets import (
 )
 
 from gui.pages.base_page import BasePage
+from slotmodel.reel_profiles import ReelProfile
 from slotmodel.sim.reels import ReelSet, Symbol, read_reels
 
 
 class ReelsPage(BasePage):
     """Page for inspecting the configured reel strips."""
 
-    def __init__(self) -> None:
+    def __init__(self, profile: ReelProfile) -> None:
         super().__init__(
             title="Reels",
             description=(
@@ -30,7 +31,7 @@ class ReelsPage(BasePage):
         )
 
         try:
-            reels = read_reels()
+            reels = read_reels(profile.reels_path)
         except (OSError, ValueError) as error:
             self.add_placeholder(
                 title="Unable to load reels",
@@ -38,7 +39,7 @@ class ReelsPage(BasePage):
             )
             return
 
-        table_card = self._create_table_card(reels)
+        table_card = self._create_table_card(reels, profile)
 
         self.body_layout.addWidget(
             table_card,
@@ -48,6 +49,7 @@ class ReelsPage(BasePage):
     def _create_table_card(
         self,
         reels: ReelSet,
+        profile: ReelProfile,
     ) -> QFrame:
         """Create the card containing the reel table."""
         reel_count = len(reels)
@@ -64,7 +66,7 @@ class ReelsPage(BasePage):
         layout.setContentsMargins(24, 24, 24, 24)
         layout.setSpacing(14)
 
-        card_title = QLabel("Active reel set")
+        card_title = QLabel(f"Active reel set · {profile.label}")
         card_title.setObjectName("cardTitle")
 
         summary_label = QLabel(

@@ -49,7 +49,7 @@ DEFAULT_MAX_WIN = 10_000.0
 def _compile_payline_position_groups(
     payline_rows: CompiledPaylines,
 ) -> PaylinePositionGroups:
-    """Group payline indices by physical ``(row, reel)`` position."""
+    """Group payline indices by physical (row, reel) position."""
 
     groups: list[PaylinePositionGroup] = []
 
@@ -190,7 +190,7 @@ def _compile_payline_outcome_lookup(
 
 @dataclass(frozen=True, slots=True)
 class PaylineEvaluation:
-    """Dense payline results with shape ``(batch_size, line_count)``."""
+    """Dense payline results with shape (batch_size, line_count)."""
 
     winning_symbols: WinningSymbolBatch
     match_counts: MatchCountBatch
@@ -370,9 +370,9 @@ class PaylineEvaluator:
         """
         Evaluate every configured payline for every supplied screen.
 
-        ``screens`` uses layout ``(spin, row, reel)``. A line begins on
+        screens uses layout (spin, row, reel). A line begins on
         reel zero and pays only for the longest connected prefix with at
-        least ``minimum_match_count`` symbols.
+        least minimum_match_count symbols.
 
         Wild behavior:
         - Wild substitutes for a regular symbol.
