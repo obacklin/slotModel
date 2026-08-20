@@ -12,7 +12,7 @@
     "max_win": 10000.0
   },
   "optimizer": {
-    "population_size": 30,
+    "population_size": 40,
     "generations": 150,
     "crossover_rate": 0.8,
     "mutation_rate": 0.03,
@@ -35,9 +35,9 @@
       "weight": 10.0
     },
     "bonus_freq": {
-      "value": 0.015384615,
+      "value": 0.014285,
       "tolerance": 0.002,
-      "weight": 10.0
+      "weight": 15.0
     },
     "base_win_prob": {
       "value": 0.377,
@@ -60,7 +60,7 @@
       "weight": 1.0
     },
     "bonus_over_50_prob": {
-      "value": 0.01,
+      "value": 0.005,
       "tolerance": 0.1,
       "weight": 1.5
     },
