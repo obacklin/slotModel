@@ -32,7 +32,7 @@ Activate the environment, In PowerShell run:
 ```
 source .venv/bin/activate
 ```
-Install dependencies packages(numpy, PySide6)
+Install packages dependencies(numpy, PySide6)
 ```
 python3 -m pip install -e .
 ```
