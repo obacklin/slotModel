@@ -5,7 +5,7 @@ from slotmodel.sim.paytable.paytable_def import (
 from slotmodel.sim.reels import Symbol
 
 # Each tuple contains the multipliers for 3, 4, and 5 connected symbols.
-PAYTABLE = Paytable(
+PAYTABLE_HIGH_VOL = Paytable(
     reel_count=5,
     minimum_match_count=3,
     entries=(
@@ -52,6 +52,57 @@ PAYTABLE = Paytable(
         PaytableEntry(
             symbol=Symbol.PAWN,
             multipliers=(1, 2, 5),
+        ),
+    ),
+)
+
+PAYTABLE_LOW_VOL = Paytable(
+    reel_count=5,
+    minimum_match_count=3,
+    entries=(
+        PaytableEntry(
+            symbol=Symbol.WILD,
+            multipliers=(3.5, 10, 20),
+        ),
+        PaytableEntry(
+            symbol=Symbol.JEWEL,
+            multipliers=(3, 5.5, 10),
+        ),
+        PaytableEntry(
+            symbol=Symbol.CASTLE,
+            multipliers=(3, 5, 8.5),
+        ),
+        PaytableEntry(
+            symbol=Symbol.CHEST,
+            multipliers=(2.5, 4.5, 6),
+        ),
+        PaytableEntry(
+            symbol=Symbol.COIN,
+            multipliers=(2, 3.5, 5),
+        ),
+        PaytableEntry(
+            symbol=Symbol.KNIGHT,
+            multipliers=(1.5, 3, 4),
+        ),
+        PaytableEntry(
+            symbol=Symbol.A,
+            multipliers=(1.5, 2.5, 3.5),
+        ),
+        PaytableEntry(
+            symbol=Symbol.K,
+            multipliers=(1, 2.5, 3),
+        ),
+        PaytableEntry(
+            symbol=Symbol.Q,
+            multipliers=(0.5, 1.5, 2),
+        ),
+        PaytableEntry(
+            symbol=Symbol.J,
+            multipliers=(0.25, 1.25, 1.5),
+        ),
+        PaytableEntry(
+            symbol=Symbol.PAWN,
+            multipliers=(0.25, 0.5, 1.25),
         ),
     ),
 )

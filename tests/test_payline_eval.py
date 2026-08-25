@@ -6,7 +6,7 @@ import numpy as np
 from slotmodel.sim.eval import PaylineEvaluator
 from slotmodel.sim.reels import Symbol
 from slotmodel.sim.paytable import ( 
-    PAYTABLE,
+    PAYTABLE_HIGH_VOL,
     compile_paytable
 )
 from slotmodel.sim.paylines import PAYLINES
@@ -33,7 +33,7 @@ class PayLineEvalTest(unittest.TestCase):
         )
 
     def test_wilds_multiply_base_symbol_payout(self) -> None:
-        payout_matrix = compile_paytable(PAYTABLE)
+        payout_matrix = compile_paytable(PAYTABLE_HIGH_VOL)
 
         evaluator = PaylineEvaluator(
             payline_rows=np.asarray(
@@ -41,7 +41,7 @@ class PayLineEvalTest(unittest.TestCase):
                 dtype=np.int8,
             ),
             payout_matrix=payout_matrix,
-            minimum_match_count=PAYTABLE.minimum_match_count,
+            minimum_match_count=PAYTABLE_HIGH_VOL.minimum_match_count,
         )
 
         coin = int(Symbol.COIN)
@@ -80,7 +80,7 @@ class PayLineEvalTest(unittest.TestCase):
     def test_lookup_matches_reference_for_every_symbol_sequence(
         self,
     ) -> None:
-        payout_matrix = compile_paytable(PAYTABLE)
+        payout_matrix = compile_paytable(PAYTABLE_HIGH_VOL)
         evaluator = self.make_evaluator(payout_matrix)
 
         symbol_count = payout_matrix.shape[0]
@@ -135,7 +135,7 @@ class PayLineEvalTest(unittest.TestCase):
     ) -> None:
         evaluator = PaylineEvaluator.from_definitions(
             PAYLINES,
-            PAYTABLE,
+            PAYTABLE_HIGH_VOL,
         )
 
         rng = np.random.default_rng(12345)

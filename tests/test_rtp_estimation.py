@@ -11,7 +11,7 @@ from slotmodel.sim.analytics import (
 )
 from slotmodel.sim.eval import PaylineEvaluator
 from slotmodel.sim.paylines import PAYLINES
-from slotmodel.sim.paytable import PAYTABLE
+from slotmodel.sim.paytable import PAYTABLE_HIGH_VOL
 from slotmodel.sim.reels import read_reels
 from slotmodel.sim.screens import ScreenModel
 
@@ -25,7 +25,7 @@ class AdaptiveRtpEstimationTests(unittest.TestCase):
         )
         cls.evaluator = PaylineEvaluator.from_definitions(
             paylines=PAYLINES,
-            paytable=PAYTABLE,
+            paytable=PAYTABLE_HIGH_VOL,
         )
 
     def test_single_stage_matches_sim_report_rtp_statistics(self) -> None:

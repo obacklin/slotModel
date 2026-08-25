@@ -78,10 +78,11 @@ QStackedWidget#pageStack {
 
 
 /* ---------------------------------------------------------
-   Reel profile selector
+   Runtime selectors
    --------------------------------------------------------- */
 
-QComboBox#profileCombo {
+QComboBox#profileCombo,
+QComboBox#paytableCombo {
     background-color: #24272c;
     color: #e6e8eb;
     border: 1px solid #3b3f46;
@@ -90,16 +91,19 @@ QComboBox#profileCombo {
     padding: 0 10px;
 }
 
-QComboBox#profileCombo:hover {
+QComboBox#profileCombo:hover,
+QComboBox#paytableCombo:hover {
     border-color: #555b65;
 }
 
-QComboBox#profileCombo::drop-down {
+QComboBox#profileCombo::drop-down,
+QComboBox#paytableCombo::drop-down {
     border: none;
     width: 24px;
 }
 
-QComboBox#profileCombo QAbstractItemView {
+QComboBox#profileCombo QAbstractItemView,
+QComboBox#paytableCombo QAbstractItemView {
     background-color: #24272c;
     color: #e6e8eb;
     border: 1px solid #3b3f46;

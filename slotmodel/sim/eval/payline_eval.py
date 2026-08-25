@@ -252,6 +252,8 @@ class PaylineEvaluator:
     wild_symbol: int = int(Symbol.WILD)
     scatter_symbol: int = int(Symbol.SCATTER)
     max_win: float = DEFAULT_MAX_WIN
+    name: str = "custom"
+    paytable_name: str = "custom"
 
     payline_position_groups: PaylinePositionGroups = field(
         init=False,
@@ -314,6 +316,11 @@ class PaylineEvaluator:
         if not np.isfinite(self.max_win) or self.max_win <= 0.0:
             raise ValueError("max_win must be a positive finite value.")
 
+        if not self.name.strip():
+            raise ValueError("name must be a non-empty string.")
+        if not self.paytable_name.strip():
+            raise ValueError("paytable_name must be a non-empty string.")
+
         object.__setattr__(
             self,
             "payline_position_groups",
@@ -337,6 +344,8 @@ class PaylineEvaluator:
         paylines: PaylineSet,
         paytable: Paytable,
         max_win: float = DEFAULT_MAX_WIN,
+        name: str = "custom",
+        paytable_name: str = "custom",
     ) -> PaylineEvaluator:
         """Compile validated payline and paytable definitions once."""
 
@@ -353,6 +362,8 @@ class PaylineEvaluator:
             payout_matrix=compile_paytable(paytable),
             minimum_match_count=paytable.minimum_match_count,
             max_win=max_win,
+            name=name,
+            paytable_name=paytable_name,
         )
 
     @property

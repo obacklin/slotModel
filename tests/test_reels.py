@@ -7,8 +7,8 @@ import unittest
 
 import numpy as np
 
-from slotmodel.paths import REELS_CONFIG_PATH
-from slotmodel.sim.paytable import PAYTABLE
+from slotmodel.paths import REELS_CANDIDATES_DIR
+from slotmodel.sim.paytable import PAYTABLE_HIGH_VOL
 from slotmodel.sim.reels import (
     Symbol,
     compile_reels,
@@ -18,6 +18,16 @@ from slotmodel.sim.reels.gen_reels import (
     generate_weighted_reels,
     save_reels,
 )
+
+
+def _candidate_reel_paths() -> tuple[Path, ...]:
+    """Return all candidate reel JSON files, excluding report files."""
+
+    return tuple(
+        path
+        for path in sorted(REELS_CANDIDATES_DIR.glob("*.json"))
+        if not path.stem.endswith("_report")
+    )
 
 
 class ReelDefinitionTests(unittest.TestCase):
@@ -85,62 +95,127 @@ class ReelConfigurationTests(unittest.TestCase):
         )
         return path
 
-    def test_project_reel_configuration_loads_with_declared_geometry(
+    def test_candidate_reel_directory_contains_reel_sets(self) -> None:
+        candidate_paths = _candidate_reel_paths()
+
+        self.assertTrue(
+            candidate_paths,
+            msg=(
+                "No candidate reel sets were found in "
+                f"{REELS_CANDIDATES_DIR}."
+            ),
+        )
+
+    def test_candidate_reel_configurations_load_with_declared_geometry(
         self,
     ) -> None:
-        data = json.loads(
-            REELS_CONFIG_PATH.read_text(encoding="utf-8")
-        )
-        reels = read_reels(REELS_CONFIG_PATH)
+        candidate_paths = _candidate_reel_paths()
 
-        self.assertEqual(len(reels), data["number_of_reels"])
+        self.assertTrue(
+            candidate_paths,
+            msg=(
+                "No candidate reel sets were found in "
+                f"{REELS_CANDIDATES_DIR}."
+            ),
+        )
 
         valid_symbol_ids = {int(symbol) for symbol in Symbol}
 
-        for reel in reels:
-            self.assertEqual(reel.shape, (data["reel_length"],))
-            self.assertEqual(reel.dtype, np.int16)
-            self.assertFalse(reel.flags.writeable)
-            self.assertTrue(
-                set(map(int, reel)).issubset(valid_symbol_ids)
-            )
+        for reels_path in candidate_paths:
+            with self.subTest(candidate=reels_path.name):
+                data = json.loads(
+                    reels_path.read_text(encoding="utf-8")
+                )
+                reels = read_reels(reels_path)
 
-    def test_project_reel_set_contains_every_defined_symbol(self) -> None:
-        reels = read_reels(REELS_CONFIG_PATH)
-        present_symbols = {
-            int(symbol_id)
-            for reel in reels
-            for symbol_id in reel
-        }
+                self.assertEqual(
+                    len(reels),
+                    data["number_of_reels"],
+                )
 
-        self.assertEqual(
-            present_symbols,
-            {int(symbol) for symbol in Symbol},
+                for reel_index, reel in enumerate(reels):
+                    with self.subTest(
+                        candidate=reels_path.name,
+                        reel_index=reel_index,
+                    ):
+                        self.assertEqual(
+                            reel.shape,
+                            (data["reel_length"],),
+                        )
+                        self.assertEqual(reel.dtype, np.int16)
+                        self.assertFalse(reel.flags.writeable)
+                        self.assertTrue(
+                            set(map(int, reel)).issubset(
+                                valid_symbol_ids
+                            )
+                        )
+
+    def test_candidate_reel_sets_contain_every_defined_symbol(
+        self,
+    ) -> None:
+        candidate_paths = _candidate_reel_paths()
+
+        self.assertTrue(
+            candidate_paths,
+            msg=(
+                "No candidate reel sets were found in "
+                f"{REELS_CANDIDATES_DIR}."
+            ),
         )
 
-    @unittest.expectedFailure
-    def test_every_reel_contains_every_payline_symbol(self) -> None:
-        """Document the requirement needed to realize every line win.
+        required_symbols = {int(symbol) for symbol in Symbol}
 
-        The current reel strips are provisional and do not yet satisfy
-        this requirement. Remove ``expectedFailure`` after regenerating
-        the strips so every payable symbol appears on every reel.
-        """
+        for reels_path in candidate_paths:
+            with self.subTest(candidate=reels_path.name):
+                reels = read_reels(reels_path)
 
-        reels = read_reels(REELS_CONFIG_PATH)
+                present_symbols = {
+                    int(symbol_id)
+                    for reel in reels
+                    for symbol_id in reel
+                }
+
+                self.assertEqual(
+                    present_symbols,
+                    required_symbols,
+                )
+
+    def test_every_candidate_reel_contains_every_payline_symbol(
+        self,
+    ) -> None:
+        """Ensure every candidate reel can realize every payline symbol."""
+
+        candidate_paths = _candidate_reel_paths()
+
+        self.assertTrue(
+            candidate_paths,
+            msg=(
+                "No candidate reel sets were found in "
+                f"{REELS_CANDIDATES_DIR}."
+            ),
+        )
+
         required_symbol_ids = {
-            int(entry.symbol) for entry in PAYTABLE.entries
+            int(entry.symbol) for entry in PAYTABLE_HIGH_VOL.entries
         }
 
-        for reel_index, reel in enumerate(reels):
-            with self.subTest(reel_index=reel_index):
-                self.assertTrue(
-                    required_symbol_ids.issubset(set(map(int, reel))),
-                    msg=(
-                        f"Reel {reel_index} is missing at least one "
-                        "payable symbol."
-                    ),
-                )
+        for reels_path in candidate_paths:
+            reels = read_reels(reels_path)
+
+            for reel_index, reel in enumerate(reels):
+                with self.subTest(
+                    candidate=reels_path.name,
+                    reel_index=reel_index,
+                ):
+                    self.assertTrue(
+                        required_symbol_ids.issubset(
+                            set(map(int, reel))
+                        ),
+                        msg=(
+                            f"{reels_path.name}, reel {reel_index} "
+                            "is missing at least one payable symbol."
+                        ),
+                    )
 
     def test_read_reels_converts_symbol_names_to_read_only_ids(self) -> None:
         with TemporaryDirectory() as temporary_directory:
@@ -175,7 +250,9 @@ class ReelConfigurationTests(unittest.TestCase):
                 dtype=np.int16,
             ),
         )
-        self.assertTrue(all(not reel.flags.writeable for reel in reels))
+        self.assertTrue(
+            all(not reel.flags.writeable for reel in reels)
+        )
 
     def test_read_reels_rejects_missing_file(self) -> None:
         with TemporaryDirectory() as temporary_directory:
@@ -217,7 +294,9 @@ class ReelConfigurationTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 read_reels(path)
 
-    def test_read_reels_rejects_declared_reel_count_mismatch(self) -> None:
+    def test_read_reels_rejects_declared_reel_count_mismatch(
+        self,
+    ) -> None:
         with TemporaryDirectory() as temporary_directory:
             path = self._write_json(
                 Path(temporary_directory),
@@ -232,7 +311,9 @@ class ReelConfigurationTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 read_reels(path)
 
-    def test_read_reels_rejects_declared_reel_length_mismatch(self) -> None:
+    def test_read_reels_rejects_declared_reel_length_mismatch(
+        self,
+    ) -> None:
         with TemporaryDirectory() as temporary_directory:
             path = self._write_json(
                 Path(temporary_directory),
@@ -310,7 +391,10 @@ class ReelGenerationTests(unittest.TestCase):
                     {int(Symbol.A), int(Symbol.K)}
                 )
             )
-            np.testing.assert_array_equal(first_reel, second_reel)
+            np.testing.assert_array_equal(
+                first_reel,
+                second_reel,
+            )
 
     def test_relative_weights_are_normalized(self) -> None:
         reels = generate_weighted_reels(
@@ -323,7 +407,11 @@ class ReelGenerationTests(unittest.TestCase):
         for reel in reels:
             np.testing.assert_array_equal(
                 reel,
-                np.full(10, int(Symbol.COIN), dtype=np.int16),
+                np.full(
+                    10,
+                    int(Symbol.COIN),
+                    dtype=np.int16,
+                ),
             )
 
     def test_invalid_generation_arguments_are_rejected(self) -> None:
@@ -352,7 +440,10 @@ class ReelGenerationTests(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             generate_weighted_reels(
-                {Symbol.A: 0.0, Symbol.K: 0.0}
+                {
+                    Symbol.A: 0.0,
+                    Symbol.K: 0.0,
+                }
             )
 
     def test_save_and_read_reels_round_trip(self) -> None:
@@ -368,7 +459,11 @@ class ReelGenerationTests(unittest.TestCase):
         )
 
         with TemporaryDirectory() as temporary_directory:
-            path = Path(temporary_directory) / "nested" / "reels.json"
+            path = (
+                Path(temporary_directory)
+                / "nested"
+                / "reels.json"
+            )
             save_reels(reels, path)
             loaded = read_reels(path)
 
@@ -395,7 +490,10 @@ class ReelGenerationTests(unittest.TestCase):
                 save_reels(
                     (
                         np.asarray([0], dtype=np.int16),
-                        np.asarray([0, 1], dtype=np.int16),
+                        np.asarray(
+                            [0, 1],
+                            dtype=np.int16,
+                        ),
                     ),
                     path,
                 )

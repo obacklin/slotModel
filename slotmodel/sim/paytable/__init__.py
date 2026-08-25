@@ -1,4 +1,4 @@
-from .paytable import PAYTABLE
+from .paytable import PAYTABLE_HIGH_VOL, PAYTABLE_LOW_VOL
 from .paytable_def import (
     Paytable,
     PaytableEntry,
@@ -8,7 +8,8 @@ from .paytable_def import (
 )
 
 __all__ = [
-    "PAYTABLE",
+    "PAYTABLE_HIGH_VOL",
+    "PAYTABLE_LOW_VOL",
     "Paytable",
     "PaytableEntry",
     "PaytableMatrix",

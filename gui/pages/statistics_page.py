@@ -21,7 +21,7 @@ from PySide6.QtWidgets import (
 )
 
 from gui.pages.base_page import BasePage
-from slotmodel.reel_profiles import ReelProfile
+from slotmodel.runtime_tools import ReelProfile
 
 
 class StatisticsPage(BasePage):
@@ -271,7 +271,13 @@ class StatisticsPage(BasePage):
 
         layout.addLayout(metrics)
 
+        paytable_name = payload.get(
+            "paytable",
+            report.get("paytable_name"),
+        )
         metadata = QLabel(
+            "Paytable: "
+            f"{self._format_scalar(paytable_name)}  ·  "
             "Best generation: "
             f"{self._format_scalar(payload.get('best_generation'))}  ·  "
             "Validation seed: "
@@ -468,7 +474,7 @@ class StatisticsPage(BasePage):
             return "—"
         if number <= 0:
             return f"{number * 100:.3f}%"
-        return f"{number * 100:.3f}% · 1 in {1.0 / number:.1f}"
+        return f"{number * 100:.3f}% ~ 1 in {round(1.0 / number):.1f}"
 
     @classmethod
     def _format_multiplier(cls, value: Any) -> str:

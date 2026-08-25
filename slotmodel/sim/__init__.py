@@ -12,7 +12,8 @@ from .paylines import (
 )
 
 from .paytable import (
-    PAYTABLE,
+    PAYTABLE_HIGH_VOL,
+    PAYTABLE_LOW_VOL,
     Paytable,
     PaytableEntry,
     compile_paytable,
@@ -33,7 +34,8 @@ from .screens import (
 
 __all__ = [
     "PAYLINES",
-    "PAYTABLE",
+    "PAYTABLE_HIGH_VOL",
+    "PAYTABLE_LOW_VOL",
     "PaylineEvaluation",
     "PaylineEvaluator",
     "PaylineSet",

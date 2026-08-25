@@ -19,19 +19,18 @@ from PySide6.QtWidgets import (
 from gui.pages.base_page import BasePage
 from gui.widgets.animated_slot_widget import AnimatedSlotWidget
 from gui.widgets.scalable_slot_view import ScalableSlotView
-from slotmodel.reel_profiles import ReelProfile
 from slotmodel.runtime_tools import (
     BonusAnimationStep,
     BonusGameRuntime,
     BonusStopGenerator,
+    PaylineEvaluatorProfile,
+    ReelProfile,
 )
 from slotmodel.sim.eval import (
     PaylineEvaluation,
-    PaylineEvaluator,
     count_scatter_symbols,
 )
 from slotmodel.sim.paylines.paylines import PAYLINES
-from slotmodel.sim.paytable import PAYTABLE
 from slotmodel.sim.reels import read_reels
 from slotmodel.sim.screens import (
     ScreenModel,
@@ -59,7 +58,11 @@ class _PendingSpin:
 class SlotPage(BasePage):
     """Main slot-game workspace for individual backend spins."""
 
-    def __init__(self, profile: ReelProfile) -> None:
+    def __init__(
+        self,
+        profile: ReelProfile,
+        evaluator_profile: PaylineEvaluatorProfile,
+    ) -> None:
         super().__init__(
             title="Slot",
             description=(
@@ -70,6 +73,7 @@ class SlotPage(BasePage):
         )
 
         self._profile = profile
+        self._evaluator_profile = evaluator_profile
         self._rng = np.random.default_rng()
         self._pending_spin: _PendingSpin | None = None
         self._pending_bonus_step: BonusAnimationStep | None = None
@@ -81,12 +85,9 @@ class SlotPage(BasePage):
                 reels=reels,
                 window_offsets=WINDOW_OFFSETS,
             )
-            self._payline_evaluator = (
-                PaylineEvaluator.from_definitions(
-                    paylines=PAYLINES,
-                    paytable=PAYTABLE,
-                )
-            )
+            # Recompile the evaluator whenever this page is rebuilt for a
+            # different paytable selection.
+            self._payline_evaluator = evaluator_profile.build()
             self._bonus_stop_generator = BonusStopGenerator(
                 model=self._screen_model,
             )
@@ -172,7 +173,10 @@ class SlotPage(BasePage):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(8)
 
-        section_title = QLabel(f"Slot spin · {self._profile.label}")
+        section_title = QLabel(
+            f"Slot spin · {self._profile.label} · "
+            f"{self._evaluator_profile.label} paytable"
+        )
         section_title.setObjectName("cardTitle")
 
         section_description = QLabel(

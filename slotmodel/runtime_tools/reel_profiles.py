@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-from slotmodel.paths import REELS_CANDIDATES_DIR, REELS_CONFIG_PATH
+from slotmodel.paths import REELS_CANDIDATES_DIR
 
 
 @dataclass(frozen=True, slots=True)
@@ -21,8 +21,6 @@ class ReelProfile:
 
 
 def _profile_label(name: str) -> str:
-    if name == "default":
-        return "Default"
 
     if name.endswith("_vol"):
         prefix = name.removesuffix("_vol").replace("_", " ").title()
@@ -34,7 +32,6 @@ def _profile_label(name: str) -> str:
 def discover_reel_profiles(
     *,
     candidates_dir: Path = REELS_CANDIDATES_DIR,
-    default_reels_path: Path = REELS_CONFIG_PATH,
 ) -> tuple[ReelProfile, ...]:
     """Discover reel sets that can be selected by the GUI.
 
@@ -45,15 +42,6 @@ def discover_reel_profiles(
     """
 
     profiles: list[ReelProfile] = []
-
-    if default_reels_path.is_file():
-        profiles.append(
-            ReelProfile(
-                name="default",
-                label=_profile_label("default"),
-                reels_path=default_reels_path,
-            )
-        )
 
     if candidates_dir.is_dir():
         for reels_path in sorted(candidates_dir.glob("*.json")):

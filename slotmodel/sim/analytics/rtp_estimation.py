@@ -8,7 +8,7 @@ import numpy as np
 from slotmodel.sim.analytics.bonus_game import simulate_bonus_games
 from slotmodel.sim.eval import PaylineEvaluator, scatter_bonus_trigger_mask
 from slotmodel.sim.paylines import PAYLINES
-from slotmodel.sim.paytable import PAYTABLE
+from slotmodel.sim.paytable import PAYTABLE_HIGH_VOL
 from slotmodel.sim.screens import ScreenModel, spin_batch
 
 
@@ -231,8 +231,10 @@ def estimate_rtp_adaptive(
     if evaluator is None:
         evaluator = PaylineEvaluator.from_definitions(
             paylines=PAYLINES,
-            paytable=PAYTABLE,
+            paytable=PAYTABLE_HIGH_VOL,
             max_win=max_win,
+            name="high_vol",
+            paytable_name="PAYTABLE_HIGH_VOL",
         )
     elif not np.isclose(evaluator.max_win, max_win):
         raise ValueError("evaluator.max_win must match max_win.")

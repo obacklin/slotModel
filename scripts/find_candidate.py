@@ -18,10 +18,10 @@ from slotmodel.optim.optimizer import (
     Optimizer,
     OptimizerConfig,
 )
-from slotmodel.sim.analytics import ParameterReport, sim_report  
-from slotmodel.sim.eval import PaylineEvaluator  
-from slotmodel.sim.paylines import PAYLINES  
-from slotmodel.sim.paytable import PAYTABLE  
+from slotmodel.runtime_tools.payline_evaluators import (
+    get_payline_evaluator_profile,
+)
+from slotmodel.sim.analytics import ParameterReport, sim_report
 from slotmodel.sim.reels import read_reels  
 from slotmodel.sim.reels.gen_reels import save_reels  
 from slotmodel.sim.screens import ScreenModel  
@@ -50,6 +50,7 @@ class CandidateEvaluation:
 class SearchProfile:
     name: str
     description: str
+    payline_evaluator: str
     simulation: dict[str, Any]
     optimizer: dict[str, Any]
     targets: dict[str, TargetTerm]
@@ -155,6 +156,15 @@ def load_profile(path: Path) -> SearchProfile:
 
     name = str(raw.get("name", path.stem))
     description = str(raw.get("description", ""))
+    payline_evaluator = str(raw.get("payline_evaluator", "")).strip()
+    if not payline_evaluator:
+        raise ValueError(
+            "Target profile must contain a non-empty 'payline_evaluator' field."
+        )
+    # Validate the serialized name while loading the profile so configuration
+    # errors fail before the optimizer starts.
+    get_payline_evaluator_profile(payline_evaluator)
+
     simulation = dict(raw.get("simulation", {}))
     optimizer = dict(raw.get("optimizer", {}))
     raw_targets = raw.get("targets")
@@ -193,6 +203,7 @@ def load_profile(path: Path) -> SearchProfile:
     return SearchProfile(
         name=name,
         description=description,
+        payline_evaluator=payline_evaluator,
         simulation=simulation,
         optimizer=optimizer,
         targets=targets,
@@ -388,10 +399,11 @@ def main() -> None:
     if missing_ga:
         raise ValueError(f"Missing optimizer settings: {', '.join(missing_ga)}")
 
-    evaluator = PaylineEvaluator.from_definitions(
-        paylines=PAYLINES,
-        paytable=PAYTABLE,
-        max_win=float(sim_cfg["max_win"]),
+    evaluator_profile = get_payline_evaluator_profile(
+        profile.payline_evaluator
+    )
+    evaluator = evaluator_profile.build(
+        max_win=float(sim_cfg["max_win"])
     )
 
     def fitness(candidate: np.ndarray, evaluation_seed: int) -> FitnessEvaluation:
@@ -442,6 +454,10 @@ def main() -> None:
     print(f"Profile: {profile.name} ({profile_path})")
     if profile.description:
         print(profile.description)
+    print(
+        "Evaluator: "
+        f"{evaluator.name} ({evaluator.paytable_name})"
+    )
     print(
         "GA: "
         f"population={ga_cfg['population_size']}, "
@@ -520,6 +536,8 @@ def main() -> None:
     report_payload = {
         "profile": profile.name,
         "profile_path": str(profile_path),
+        "payline_evaluator": evaluator.name,
+        "paytable": evaluator.paytable_name,
         "seed": args.seed,
         "simulation": sim_cfg,
         "optimizer": ga_cfg,

@@ -13,13 +13,14 @@ from PySide6.QtWidgets import(
 )
 
 from gui.pages.base_page import BasePage
-from slotmodel.sim.paytable import PAYTABLE, Paytable
+from slotmodel.runtime_tools import PaylineEvaluatorProfile
+from slotmodel.sim.paytable import Paytable
 from slotmodel.sim.reels import Symbol
 
 class PaytablePage(BasePage):
     """Page for displaying the configured paytable."""
 
-    def __init__(self) -> None:
+    def __init__(self, evaluator_profile: PaylineEvaluatorProfile) -> None:
         super().__init__(
             title="Paytable",
             description=(
@@ -28,7 +29,8 @@ class PaytablePage(BasePage):
             expand_body=True
         )
 
-        table_card = self._create_table_card(PAYTABLE)
+        self._evaluator_profile = evaluator_profile
+        table_card = self._create_table_card(evaluator_profile.paytable)
 
         self.body_layout.addWidget(
             table_card,
@@ -51,12 +53,17 @@ class PaytablePage(BasePage):
         layout.setContentsMargins(24, 24, 24, 24)
         layout.setSpacing(14)
 
-        card_title = QLabel("Symbol multipliers")
+        card_title = QLabel(
+            f"Symbol multipliers · {self._evaluator_profile.label}"
+        )
         card_title.setObjectName("cardTitle")
 
         card_description = QLabel(
-            "Payout values are multipliers of the configured bet."
+            "Payout values are multipliers of the configured bet. "
+            f"Backend paytable: {self._evaluator_profile.paytable_name}; "
+            f"evaluator key: {self._evaluator_profile.name}."
         )
+        card_description.setWordWrap(True)
         card_description.setObjectName("cardDescription")
 
         self.paytable_table = self._create_paytable_table(

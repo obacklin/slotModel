@@ -1,4 +1,5 @@
 {
+  "paytable": "High Volatility",
   "profile": "high_vol",
   "profile_path": "D:\\slotModel\\config\\targets\\high_vol.json",
   "seed": 42,

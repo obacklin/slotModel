@@ -13,7 +13,7 @@ from PySide6.QtWidgets import (
 )
 
 from gui.pages.base_page import BasePage
-from slotmodel.reel_profiles import ReelProfile
+from slotmodel.runtime_tools import ReelProfile
 from slotmodel.sim.reels import ReelSet, Symbol, read_reels
 
 

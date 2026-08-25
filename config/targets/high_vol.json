@@ -1,6 +1,7 @@
 {
   "name": "high_vol",
   "description": "95% RTP, rare/high-value bonus, sparse base hits, heavy bonus tail.",
+  "payline_evaluator": "high_vol",
   "simulation": {
     "base_spins": 500000,
     "bonus_games": 500000,

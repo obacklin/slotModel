@@ -8,7 +8,6 @@ from slotmodel.sim.eval import (
     scatter_bonus_trigger_mask,
 )
 from slotmodel.sim.paylines import PAYLINES
-from slotmodel.sim.paytable import PAYTABLE
 from slotmodel.sim.screens import ScreenModel, spin_batch
 from slotmodel.sim.analytics.bonus_game import simulate_bonus_games
 
@@ -81,6 +80,8 @@ class TailStatistics:
 @dataclass(frozen=True, slots=True)
 class ParameterReport:
     seed: int
+    payline_evaluator_name: str
+    paytable_name: str
     rtp_base: float
     rtp_bonus: float
     bonus_freq: float
@@ -116,6 +117,8 @@ class ParameterReport:
             "=" * 50,
             "PARAMETER REPORT",
             "=" * 50,
+            f"Payline evaluator:      {self.payline_evaluator_name}",
+            f"Paytable:               {self.paytable_name}",
             "",
             "RTP",
             "-" * 50,
@@ -244,12 +247,12 @@ def sim_report(
     model: ScreenModel,
     total_spins: int,
     total_bonus_games: int,
+    evaluator: PaylineEvaluator,
     seed: int = 42,
     min_scatter: int = 3,
     initial_free_spins: int = 10,
     retrigger_free_spins: int = 10,
     max_win: float = 10_000.0,
-    evaluator: PaylineEvaluator | None = None,
 ) -> ParameterReport:
 
     if total_spins <= 0:
@@ -270,13 +273,7 @@ def sim_report(
     base_rng = np.random.default_rng(base_seed)
     bonus_rng = np.random.default_rng(bonus_seed)
 
-    if evaluator is None:
-        evaluator = PaylineEvaluator.from_definitions(
-            paylines=PAYLINES,
-            paytable=PAYTABLE,
-            max_win=max_win,
-        )
-    elif not np.isclose(evaluator.max_win, max_win):
+    if not np.isclose(evaluator.max_win, max_win):
         raise ValueError("evaluator.max_win must match max_win.")
 
     # Base game
@@ -392,6 +389,8 @@ def sim_report(
 
     return ParameterReport(
         seed=seed,
+        payline_evaluator_name=evaluator.name,
+        paytable_name=evaluator.paytable_name,
         rtp_base=rtp_base,
         rtp_bonus=rtp_bonus,
         bonus_freq=bonus_freq,

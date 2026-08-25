@@ -1,6 +1,7 @@
 {
   "name": "low_vol",
   "description": "95% RTP, frequent small base wins, more frequent/moderate bonus, compressed tails. Because the current paytable has no payouts below 1x, the 30% small-win target is expressed as P(0<X<2)=0.30.",
+  "payline_evaluator": "low_vol",
   "simulation": {
     "base_spins": 500000,
     "bonus_games": 500000,
