@@ -45,5 +45,9 @@ On Linux/Mac run:
 ```
 python3 -m gui
 ```
+<div align="center">
+  <img alt="Slot Display" src="https://github.com/obacklin/slotModel/blob/main/assets/mereads/SlotDisplay.png" width=92%>
+</div>
+
 ### Contact
 Oskar Bäcklin - oskar_backlin@live.com
