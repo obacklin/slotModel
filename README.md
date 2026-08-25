@@ -45,3 +45,5 @@ On Linux/Mac run:
 ```
 python3 -m gui
 ```
+### Contact
+Oskar Bäcklin - oskar_backlin@live.com
