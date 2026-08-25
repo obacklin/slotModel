@@ -66,8 +66,8 @@ class SlotPage(BasePage):
         super().__init__(
             title="Slot",
             description=(
-                "Run an individual backend spin or force and animate a "
-                "complete sticky-respin bonus game."
+                "Play individual spins or force and animate a "
+                "bonus game."
             ),
             expand_body=True,
         )
@@ -174,18 +174,10 @@ class SlotPage(BasePage):
         layout.setSpacing(8)
 
         section_title = QLabel(
-            f"Slot spin · {self._profile.label} · "
-            f"{self._evaluator_profile.label} paytable"
+            f"Settings : Reel set - {self._profile.label} · "
+            f"Paytable - {self._evaluator_profile.label}"
         )
         section_title.setObjectName("cardTitle")
-
-        section_description = QLabel(
-            "Spin samples a normal backend outcome. Bonus Game first "
-            "forces a valid feature trigger, then animates the complete "
-            "backend bonus with sticky winning symbols and retriggers."
-        )
-        section_description.setObjectName("cardDescription")
-        section_description.setWordWrap(True)
 
         # The slot column is the only horizontally flexible part of the game
         # row. The native AnimatedSlotWidget lives inside ScalableSlotView, so
@@ -272,7 +264,6 @@ class SlotPage(BasePage):
         )
 
         layout.addWidget(section_title)
-        layout.addWidget(section_description)
         layout.addLayout(game_row, stretch=1)
         layout.addWidget(self._status_label)
 

@@ -49,7 +49,7 @@ class MainWindow(QMainWindow):
 
     def _configure_window(self) -> None:
         """Configure the operating-system window."""
-        self.setWindowTitle("Slot Model")
+        self.setWindowTitle("OB SlotModel")
         self.resize(1100, 720)
         self.setMinimumSize(850, 550)
 
@@ -106,14 +106,10 @@ class MainWindow(QMainWindow):
         layout.setContentsMargins(22, 28, 22, 22)
         layout.setSpacing(8)
 
-        application_title = QLabel("SLOT MODEL")
+        application_title = QLabel("SlotModel")
         application_title.setObjectName("applicationTitle")
 
-        application_subtitle = QLabel("Simulation workspace")
-        application_subtitle.setObjectName("applicationSubtitle")
-
         layout.addWidget(application_title)
-        layout.addWidget(application_subtitle)
         layout.addSpacing(24)
 
         profile_heading = QLabel("REEL PROFILE")
@@ -181,10 +177,6 @@ class MainWindow(QMainWindow):
                 QSizePolicy.Policy.Expanding,
             )
         )
-
-        version_label = QLabel("Development interface")
-        version_label.setObjectName("applicationSubtitle")
-        layout.addWidget(version_label)
 
         return sidebar
 

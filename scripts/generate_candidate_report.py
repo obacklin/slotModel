@@ -27,7 +27,7 @@ from slotmodel.sim.screens import ScreenModel
 
 # Reel JSON to evaluate. For the GUI to discover the reel set automatically,
 # this file must be directly inside config/reels/candidates.
-REELS_PATH = REELS_CANDIDATES_DIR / "low_vol_copy.json"
+REELS_PATH = REELS_CANDIDATES_DIR / "high_vol.json"
 
 # Monte Carlo sample sizes.
 BASE_SPINS = 5_000_000
@@ -43,7 +43,7 @@ MAX_WIN = 10_000.0
 
 # Explicitly choose the named evaluator used for this reel set. The name must
 # match one of the profiles in slotmodel/runtime_tools/payline_evaluators.py.
-PAYLINE_EVALUATOR = "low_vol"
+PAYLINE_EVALUATOR = "high_vol"
 EVALUATOR_PROFILE = get_payline_evaluator_profile(PAYLINE_EVALUATOR)
 EVALUATOR = EVALUATOR_PROFILE.build(max_win=MAX_WIN)
 
@@ -130,7 +130,6 @@ def _report_payload(report: ParameterReport, reels_path: Path) -> dict[str, Any]
     return {
         "profile": reels_path.stem,
         "profile_path": str(reels_path),
-        "payline_evaluator": EVALUATOR.name,
         "paytable": EVALUATOR.paytable_name,
         "seed": SEED,
         "simulation": simulation,

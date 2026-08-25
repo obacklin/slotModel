@@ -64,8 +64,7 @@ class PaylinesPage(BasePage):
         super().__init__(
             title="Paylines",
             description=(
-                "Inspect how each configured "
-                "payline crosses the game screen."
+                "Inspect each configured payline."
             ),
             expand_body=True,
         )
@@ -204,9 +203,7 @@ class PaylinesPage(BasePage):
         panel_layout.setSpacing(10)
 
         instruction_label = QLabel(
-            "Check one or more lines. "
-            "The selected row is emphasized "
-            "on the screen."
+            "Check one or more lines."
         )
         instruction_label.setObjectName(
             "paylineInstruction"

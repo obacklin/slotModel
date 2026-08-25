@@ -208,15 +208,43 @@ QLabel#scatterCountDisplay {
 }
 
 QCheckBox#autoSpinCheckbox {
-    background-color: transparent;
+    background-color: #24272c;
     color: #c5cad1;
+    border: 1px solid #454a52;
+    border-radius: 7px;
+    padding: 0 12px;
     spacing: 8px;
-    min-height: 28px;
+    min-height: 36px;
     font-weight: 600;
 }
 
+QCheckBox#autoSpinCheckbox:hover {
+    background-color: #2b2e34;
+    border-color: #5b616b;
+    color: #e6e8eb;
+}
+
+QCheckBox#autoSpinCheckbox:checked {
+    background-color: #3b4266;
+    color: #ffffff;
+    border: 1px solid #6672e5;
+}
+
+QCheckBox#autoSpinCheckbox:checked:hover {
+    background-color: #454d78;
+    border-color: #7883eb;
+}
+
 QCheckBox#autoSpinCheckbox:disabled {
+    background-color: #2b2e32;
     color: #777d86;
+    border-color: #3d4148;
+}
+
+QCheckBox#autoSpinCheckbox:checked:disabled {
+    background-color: #34394f;
+    color: #858b9a;
+    border-color: #484f72;
 }
 
 

@@ -98,7 +98,7 @@ PAYTABLE_LOW_VOL = Paytable(
         ),
         PaytableEntry(
             symbol=Symbol.J,
-            multipliers=(0.25, 1.25, 1.5),
+            multipliers=(0.5, 1.25, 1.5),
         ),
         PaytableEntry(
             symbol=Symbol.PAWN,

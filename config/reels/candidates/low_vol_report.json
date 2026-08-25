@@ -1,332 +1,118 @@
 {
   "profile": "low_vol",
-  "profile_path": "D:\\slotModel\\config\\targets\\low_vol.json",
+  "profile_path": "/home/oskar/slotModel/config/reels/candidates/low_vol.json",
+  "paytable": "PAYTABLE_LOW_VOL",
   "seed": 42,
   "simulation": {
-    "base_spins": 500000,
-    "bonus_games": 500000,
-    "final_base_spins": 1000000,
-    "final_bonus_games": 1000000,
+    "base_spins": 5000000,
+    "bonus_games": 5000000,
     "min_scatter": 3,
     "initial_free_spins": 10,
     "retrigger_free_spins": 10,
-    "max_win": 10000.0
+    "max_win": 10000.0,
+    "window_offsets": [
+      0,
+      1,
+      2
+    ]
   },
-  "optimizer": {
-    "population_size": 40,
-    "generations": 150,
-    "crossover_rate": 0.8,
-    "mutation_rate": 0.03,
-    "tournament_size": 3,
-    "elite_count": 2,
-    "max_workers": 6,
-    "initial_candidate_concentration": 24.0,
-    "initial_reel_concentration": 70.0,
-    "reel_length": 51
-  },
-  "best_generation": 147,
-  "search_evaluation": {
-    "score": 4.254381360168389,
-    "metrics": {
-      "rtp_total": 0.950973544608,
-      "rtp_base": 0.756509,
-      "rtp_bonus": 0.194464544608,
-      "bonus_freq": 0.001906,
-      "mean_bonus_payout": 102.027568,
-      "mean_free_spins": 11.6889,
-      "base_win_prob": 0.303444,
-      "base_0_to_1_prob": 0.0,
-      "base_1_to_2_prob": 0.176536,
-      "base_2_to_5_prob": 0.099412,
-      "base_5_to_10_prob": 0.01535,
-      "base_10_to_20_prob": 0.007912,
-      "base_20_to_30_prob": 0.002412,
-      "base_30_to_50_prob": 0.00134,
-      "base_over_50_prob": 0.000482,
-      "base_0_to_2_prob": 0.176536,
-      "base_0_to_5_prob": 0.27594799999999997,
-      "base_5_to_20_prob": 0.023262,
-      "base_20_to_50_prob": 0.003752,
-      "base_over_10_prob": 0.012146,
-      "bonus_win_prob": 0.99872,
-      "bonus_0_to_10_prob": 0.021588,
-      "bonus_10_to_25_prob": 0.089246,
-      "bonus_25_to_50_prob": 0.202566,
-      "bonus_50_to_100_prob": 0.315398,
-      "bonus_100_to_250_prob": 0.303954,
-      "bonus_250_to_500_prob": 0.059192,
-      "bonus_500_to_1000_prob": 0.006292,
-      "bonus_over_1000_prob": 0.000484,
-      "bonus_over_50_prob": 0.68532,
-      "bonus_over_100_prob": 0.36992200000000003,
-      "bonus_over_250_prob": 0.065968
-    },
-    "normalized_errors": {
-      "rtp_total": 0.0486772304000016,
-      "rtp_bonus": 0.47322723040000014,
-      "bonus_freq": -6.189500000000001,
-      "base_win_prob": -3.6778000000000004,
-      "base_0_to_2_prob": -4.938559999999999,
-      "base_2_to_5_prob": 4.941199999999999,
-      "base_over_10_prob": 0.14866666666666672,
-      "bonus_over_50_prob": 6.8032,
-      "bonus_over_100_prob": 7.37844
-    },
-    "targets": {
-      "rtp_total": {
-        "value": 0.95,
-        "tolerance": 0.02,
-        "weight": 10.0
-      },
-      "rtp_bonus": {
-        "value": 0.185,
-        "tolerance": 0.02,
-        "weight": 10.0
-      },
-      "bonus_freq": {
-        "value": 0.014285,
-        "tolerance": 0.002,
-        "weight": 15.0
-      },
-      "base_win_prob": {
-        "value": 0.377,
-        "tolerance": 0.02,
-        "weight": 5.0
-      },
-      "base_0_to_2_prob": {
-        "value": 0.3,
-        "tolerance": 0.025,
-        "weight": 1.5
-      },
-      "base_2_to_5_prob": {
-        "value": 0.05,
-        "tolerance": 0.01,
-        "weight": 1.5
-      },
-      "base_over_10_prob": {
-        "value": 0.0117,
-        "tolerance": 0.003,
-        "weight": 1.0
-      },
-      "bonus_over_50_prob": {
-        "value": 0.005,
-        "tolerance": 0.1,
-        "weight": 1.5
-      },
-      "bonus_over_100_prob": {
-        "value": 0.001,
-        "tolerance": 0.05,
-        "weight": 1.0
-      }
-    },
-    "report": {
-      "seed": 2661067453,
-      "rtp_base": 0.756509,
-      "rtp_bonus": 0.194464544608,
-      "bonus_freq": 0.001906,
-      "mean_bonus_payout": 102.027568,
-      "mean_free_spins": 11.6889,
-      "payout_bands": {
-        "p_0": 0.696556,
-        "p_win": 0.303444,
-        "p_0_to_1": 0.0,
-        "p_1_to_2": 0.176536,
-        "p_2_to_5": 0.099412,
-        "p_5_to_10": 0.01535,
-        "p_10_to_20": 0.007912,
-        "p_20_to_30": 0.002412,
-        "p_30_to_50": 0.00134,
-        "p_over_50": 0.000482
-      },
-      "bonus_payout_bands": {
-        "p_0": 0.00128,
-        "p_win": 0.99872,
-        "p_0_to_10": 0.021588,
-        "p_10_to_25": 0.089246,
-        "p_25_to_50": 0.202566,
-        "p_50_to_100": 0.315398,
-        "p_100_to_250": 0.303954,
-        "p_250_to_500": 0.059192,
-        "p_500_to_1000": 0.006292,
-        "p_over_1000": 0.000484
-      },
-      "base_tail": {
-        "p95": 3.0,
-        "p99": 10.0,
-        "p999": 39.0,
-        "max_observed": 354.0,
-        "max_win_freq": 0.0
-      },
-      "bonus_tail": {
-        "p95": 276.0,
-        "p99": 449.0,
-        "p999": 804.0,
-        "max_observed": 3025.0,
-        "max_win_freq": 0.0
-      },
-      "std_base": 3.0121533458731076,
-      "std_bonus": 95.52655921602332,
-      "std_total": 6.786111252571217,
-      "bonus_freq_se": 6.168252854739339e-05,
-      "mean_bonus_payout_se": 0.13509495561013674,
-      "rtp_base_se": 0.004259828113681245,
-      "rtp_bonus_se": 0.006298589304389214,
-      "rtp_total_se": 0.007575185402014556,
-      "total_base_spins": 500000,
-      "bonus_entries": 953,
-      "total_bonus_games": 500000
-    }
-  },
+  "best_generation": null,
   "evaluation": {
-    "score": 4.262856451680796,
+    "score": null,
     "metrics": {
-      "rtp_total": 0.9563038538885,
-      "rtp_base": 0.7620605,
-      "rtp_bonus": 0.1942433538885,
-      "bonus_freq": 0.001897,
-      "mean_bonus_payout": 102.3950205,
-      "mean_free_spins": 11.68814,
-      "base_win_prob": 0.303429,
-      "base_0_to_1_prob": 0.0,
-      "base_1_to_2_prob": 0.175948,
-      "base_2_to_5_prob": 0.099817,
-      "base_5_to_10_prob": 0.015477,
-      "base_10_to_20_prob": 0.007866,
-      "base_20_to_30_prob": 0.002501,
-      "base_30_to_50_prob": 0.001316,
-      "base_over_50_prob": 0.000504,
-      "base_0_to_2_prob": 0.175948,
-      "base_0_to_5_prob": 0.275765,
-      "base_5_to_20_prob": 0.023343,
-      "base_20_to_50_prob": 0.003817,
-      "base_over_10_prob": 0.012186999999999998,
-      "bonus_win_prob": 0.998777,
-      "bonus_0_to_10_prob": 0.021534,
-      "bonus_10_to_25_prob": 0.089421,
-      "bonus_25_to_50_prob": 0.20138,
-      "bonus_50_to_100_prob": 0.315028,
-      "bonus_100_to_250_prob": 0.304576,
-      "bonus_250_to_500_prob": 0.059909,
-      "bonus_500_to_1000_prob": 0.006463,
-      "bonus_over_1000_prob": 0.000466,
-      "bonus_over_50_prob": 0.686442,
-      "bonus_over_100_prob": 0.371414,
-      "bonus_over_250_prob": 0.066838
+      "rtp_total": 0.9507866730475,
+      "rtp_base": 0.4801934,
+      "rtp_bonus": 0.4705932730475,
+      "bonus_freq": 0.00677,
+      "mean_bonus_payout": 69.51156175,
+      "mean_free_spins": 15.68739,
+      "base_win_prob": 0.2187066,
+      "base_0_to_1_prob": 0.0863,
+      "base_1_to_2_prob": 0.0654876,
+      "base_2_to_5_prob": 0.0425226,
+      "base_5_to_10_prob": 0.0166654,
+      "base_10_to_20_prob": 0.005677,
+      "base_20_to_30_prob": 0.0015274,
+      "base_30_to_50_prob": 0.000402,
+      "base_over_50_prob": 0.0001246,
+      "base_0_to_2_prob": 0.15178760000000002,
+      "base_0_to_5_prob": 0.19431020000000002,
+      "base_5_to_20_prob": 0.0223424,
+      "base_20_to_50_prob": 0.0019294,
+      "base_over_10_prob": 0.007730999999999999,
+      "bonus_win_prob": 0.994744,
+      "bonus_0_to_10_prob": 0.0787666,
+      "bonus_10_to_25_prob": 0.1779032,
+      "bonus_25_to_50_prob": 0.2575564,
+      "bonus_50_to_100_prob": 0.2671016,
+      "bonus_100_to_250_prob": 0.1829892,
+      "bonus_250_to_500_prob": 0.0282098,
+      "bonus_500_to_1000_prob": 0.0021908,
+      "bonus_over_1000_prob": 2.64e-05,
+      "bonus_over_50_prob": 0.4805178,
+      "bonus_over_100_prob": 0.2134162,
+      "bonus_over_250_prob": 0.030427
     },
-    "normalized_errors": {
-      "rtp_total": 0.31519269442500386,
-      "rtp_bonus": 0.4621676944250003,
-      "bonus_freq": -6.194000000000001,
-      "base_win_prob": -3.67855,
-      "base_0_to_2_prob": -4.962079999999999,
-      "base_2_to_5_prob": 4.9817,
-      "base_over_10_prob": 0.1623333333333326,
-      "bonus_over_50_prob": 6.814419999999999,
-      "bonus_over_100_prob": 7.40828
-    },
-    "targets": {
-      "rtp_total": {
-        "value": 0.95,
-        "tolerance": 0.02,
-        "weight": 10.0
-      },
-      "rtp_bonus": {
-        "value": 0.185,
-        "tolerance": 0.02,
-        "weight": 10.0
-      },
-      "bonus_freq": {
-        "value": 0.014285,
-        "tolerance": 0.002,
-        "weight": 15.0
-      },
-      "base_win_prob": {
-        "value": 0.377,
-        "tolerance": 0.02,
-        "weight": 5.0
-      },
-      "base_0_to_2_prob": {
-        "value": 0.3,
-        "tolerance": 0.025,
-        "weight": 1.5
-      },
-      "base_2_to_5_prob": {
-        "value": 0.05,
-        "tolerance": 0.01,
-        "weight": 1.5
-      },
-      "base_over_10_prob": {
-        "value": 0.0117,
-        "tolerance": 0.003,
-        "weight": 1.0
-      },
-      "bonus_over_50_prob": {
-        "value": 0.005,
-        "tolerance": 0.1,
-        "weight": 1.5
-      },
-      "bonus_over_100_prob": {
-        "value": 0.001,
-        "tolerance": 0.05,
-        "weight": 1.0
-      }
-    },
+    "normalized_errors": {},
+    "targets": {},
     "report": {
-      "seed": 1000045,
-      "rtp_base": 0.7620605,
-      "rtp_bonus": 0.1942433538885,
-      "bonus_freq": 0.001897,
-      "mean_bonus_payout": 102.3950205,
-      "mean_free_spins": 11.68814,
+      "seed": 42,
+      "payline_evaluator_name": "low_vol",
+      "paytable_name": "PAYTABLE_LOW_VOL",
+      "rtp_base": 0.4801934,
+      "rtp_bonus": 0.4705932730475,
+      "bonus_freq": 0.00677,
+      "mean_bonus_payout": 69.51156175,
+      "mean_free_spins": 15.68739,
       "payout_bands": {
-        "p_0": 0.696571,
-        "p_win": 0.303429,
-        "p_0_to_1": 0.0,
-        "p_1_to_2": 0.175948,
-        "p_2_to_5": 0.099817,
-        "p_5_to_10": 0.015477,
-        "p_10_to_20": 0.007866,
-        "p_20_to_30": 0.002501,
-        "p_30_to_50": 0.001316,
-        "p_over_50": 0.000504
+        "p_0": 0.7812934,
+        "p_win": 0.2187066,
+        "p_0_to_1": 0.0863,
+        "p_1_to_2": 0.0654876,
+        "p_2_to_5": 0.0425226,
+        "p_5_to_10": 0.0166654,
+        "p_10_to_20": 0.005677,
+        "p_20_to_30": 0.0015274,
+        "p_30_to_50": 0.000402,
+        "p_over_50": 0.0001246
       },
       "bonus_payout_bands": {
-        "p_0": 0.001223,
-        "p_win": 0.998777,
-        "p_0_to_10": 0.021534,
-        "p_10_to_25": 0.089421,
-        "p_25_to_50": 0.20138,
-        "p_50_to_100": 0.315028,
-        "p_100_to_250": 0.304576,
-        "p_250_to_500": 0.059909,
-        "p_500_to_1000": 0.006463,
-        "p_over_1000": 0.000466
+        "p_0": 0.005256,
+        "p_win": 0.994744,
+        "p_0_to_10": 0.0787666,
+        "p_10_to_25": 0.1779032,
+        "p_25_to_50": 0.2575564,
+        "p_50_to_100": 0.2671016,
+        "p_100_to_250": 0.1829892,
+        "p_250_to_500": 0.0282098,
+        "p_500_to_1000": 0.0021908,
+        "p_over_1000": 2.64e-05
       },
       "base_tail": {
         "p95": 3.0,
-        "p99": 10.0,
-        "p999": 40.0,
-        "max_observed": 1282.0,
+        "p99": 8.0,
+        "p999": 24.0,
+        "max_observed": 226.0,
         "max_win_freq": 0.0
       },
       "bonus_tail": {
-        "p95": 277.0,
-        "p99": 453.0,
-        "p999": 802.5,
-        "max_observed": 5289.5,
+        "p95": 208.0,
+        "p99": 350.75,
+        "p999": 583.5,
+        "max_observed": 1756.0,
         "max_win_freq": 0.0
       },
-      "std_base": 3.402749568076436,
-      "std_bonus": 96.08348196277072,
-      "std_total": 6.9803169039649084,
-      "bonus_freq_se": 4.351323236671806e-05,
-      "mean_bonus_payout_se": 0.09608348196277072,
-      "rtp_base_se": 0.003402749568076436,
-      "rtp_bonus_se": 0.004459266945236768,
-      "rtp_total_se": 0.005589717471894942,
-      "total_base_spins": 1000000,
-      "bonus_entries": 1897,
-      "total_bonus_games": 1000000
+      "std_base": 1.9957326399561117,
+      "std_bonus": 72.02881762647887,
+      "std_total": 8.440248980300652,
+      "bonus_freq_se": 3.6671970495188826e-05,
+      "mean_bonus_payout_se": 0.03221226651034836,
+      "rtp_base_se": 0.0008925187695713957,
+      "rtp_bonus_se": 0.0025584374252005985,
+      "rtp_total_se": 0.002696361723157354,
+      "total_base_spins": 5000000,
+      "bonus_entries": 33850,
+      "total_bonus_games": 5000000
     }
   }
 }

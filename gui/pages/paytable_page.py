@@ -24,7 +24,7 @@ class PaytablePage(BasePage):
         super().__init__(
             title="Paytable",
             description=(
-                "Inspect the payout multipliers for each payable symbol."
+                "Inspect the payout multipliers for each symbol."
             ),
             expand_body=True
         )
