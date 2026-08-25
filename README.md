@@ -1,5 +1,5 @@
 # slotModel
-This is a personal project for slot simulation and balancing. It covers a full game simulation, a graphical interface for inspection and testing the slot, displaying the paylines, paytables and simulation statistics.
+This is a personal project for slot simulation and balancing. It covers a full game simulation, a graphical interface for inspection and testing the slot, displaying the paylines, paytables and simulation statistics. The project contains configurable paylines,paytables and reels, as well as internal tools for simulations, computing statistics and optimizing reels using a genetic algorithm.
 
 ### Installation
 Requirements: Python >= 3.10.
@@ -15,7 +15,7 @@ Initialize virtual environment, run:
 ```
 python -m venv .venv
 ```
-Activate the environment, in Bash run:
+Activate the environment, in PowerShell run:
 ```
 .\.venv\Scripts\activate
 ```
@@ -30,13 +30,12 @@ python3 -m venv .venv
 ```
 Activate the environment, In PowerShell run:
 ```
-.venv/bin/activate
+source .venv/bin/activate
 ```
 Install dependencies packages(numpy, PySide6)
 ```
 python3 -m pip install -e .
 ```
-
 ### Running the GUI
 To run the Graphical interface, on windows run:
 ```
