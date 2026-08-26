@@ -269,7 +269,7 @@ def iter_spin_batches(
     batch_size: int,
     rng: np.random.Generator,
 ) -> Iterator[SpinBatch]:
-    """Yield a large simulation as bounded-memory batches."""
+    """Yield a large simulation as batches."""
 
     if total_spins < 0:
         raise ValueError("total_spins cannot be negative.")

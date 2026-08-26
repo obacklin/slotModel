@@ -18,8 +18,8 @@ reels = read_reels(cand_path)
 window = np.asarray([0, 1, 2], dtype=np.int32)
 
 sm = ScreenModel.from_reels(reels=reels, window_offsets=window)
-base_spins = 5_000_000
-bonus_spins = 5_000_000
+base_spins = 1_000_000
+bonus_spins = 1_000_000
 
 PAYLINE_EVALUATOR = "low_vol"
 evaluator = get_payline_evaluator_profile(PAYLINE_EVALUATOR).build()
