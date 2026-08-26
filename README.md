@@ -5,7 +5,7 @@ This is a personal project for slot simulation and balancing. It covers a full g
 The project contains two versions of the game; one with higher volatility where more of the RTP is distributed into the tail of the P(X) (X : payout) and has a more rare bonus game, and
 one lower volatility version where they payout is concentrated more in the lower end. The RTP for the higher volatility version is ~ 96% and was found using a genetic algorithm optimizing the reels for a number of target variables. The lower volatility version has an RTP of ~ 95%, and was optimized by hand through modification of the paytable and reel symbols.
 
-The game itself is a 3x5 slot with 15 paylines. The reels have a length of 51, and there are 11 symbols including a wild symbol, and a scatter symbol.
+The game itself is a 3x5 slot with 15 paylines. The reels have a length of 51, and there are 11 symbols including a wild symbol(diamond symbol), and a scatter symbol(four clover).
 The wild symbol can substitute for any other symbol except the scatter.
 
 A win is obtained when at least 3 symbols are connected on a payline, starting from the leftmost reel. If a win contains wild(s) then the base win multiplier is further increased depending on the number of wilds that is included on the payline 1:2x, 2:4x, 3:8x, 4:16x, 5:32x. The wilds symbols themselves follow a payout depending on the paytable. A payline with only wilds counts as a win with the wild symbol. 
