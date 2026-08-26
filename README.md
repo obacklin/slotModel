@@ -16,6 +16,7 @@ There is functionality in the API to simulate the base game spins and complete b
 
 ### Installation
 Requirements: Python >= 3.10.
+To avoid interfering with any current Python installation(s), installing inside a virtual environment is highly recommended.
 #### Step 1
 Clone the repository
 ```
