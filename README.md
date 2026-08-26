@@ -60,8 +60,19 @@ On Linux/Mac run:
 python3 -m gui
 ```
 <div align="center">
-  <img alt="Slot Display" src="https://github.com/obacklin/slotModel/blob/main/assets/mereads/SlotDisplay.png" width=92%>
+  <img alt="Slot Display" src="https://github.com/obacklin/slotModel/blob/main/assets/mereads/SlotDisplay.png" width=92% />
 </div>
 
 ### Contact
 Oskar Bäcklin - oskar_backlin@live.com
+
+### Screenshots
+<p align="center">
+  <img src="https://github.com/obacklin/slotModel/blob/main/assets/mereads/StatsPage.png" width="48%" />
+  <img src="https://github.com/obacklin/slotModel/blob/main/assets/mereads/PaylinePage.png" width="48%" />
+</p>
+
+<p align="center">
+  <img src="https://github.com/obacklin/slotModel/blob/main/assets/mereads/ReelsPage.png" width="48%" />
+  <img src="https://github.com/obacklin/slotModel/blob/main/assets/mereads/PaytablePage.png" width="48%" />
+</p>
