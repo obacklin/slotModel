@@ -65,6 +65,7 @@ python3 -m gui
 
 ### Contact
 Oskar Bäcklin - oskar_backlin@live.com
+CV: [OneDrive](https://1drv.ms/f/c/a269b81a964f6a44/IgAOjWixByYqRqIlSZhR72NaAVrKo8gwx4XYZttdQAp_1cA?e=S8MGhM)
 
 ### Screenshots
 <p align="center">
